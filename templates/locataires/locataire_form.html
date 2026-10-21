@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Modifier{% else %}Créer{% endif %} un locataire - LocaHome{% endblock %}
+
+{% block content %}
+  <div class="mb-4">
+    <a href="{% url 'locataires:liste' %}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; Retour à la liste des locataires</a>
+  </div>
+
+  <div class="bg-white shadow rounded p-6 max-w-3xl">
+    <h1 class="text-2xl font-semibold text-gray-800 mb-6">
+      {% if object %}Modifier le locataire {{ object.nom_complet }}{% else %}Créer un nouveau locataire{% endif %}
+    </h1>
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="bg-red-100 text-red-800 p-3 rounded">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="{{ form.nom_complet.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.nom_complet.label }} <span class="text-red-600">*</span>
+          </label>
+          {{ form.nom_complet }}
+          {% if form.nom_complet.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.nom_complet.errors }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.telephone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.telephone.label }}
+          </label>
+          {{ form.telephone }}
+          {% if form.telephone.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.telephone.errors }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.email.label }}
+          </label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.email.errors }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.adresse.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.adresse.label }}
+          </label>
+          {{ form.adresse }}
+          {% if form.adresse.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.adresse.errors }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.chambre.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.chambre.label }} <span class="text-red-600">*</span>
+          </label>
+          {{ form.chambre }}
+          {% if form.chambre.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.chambre.errors }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.statut.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.statut.label }}
+          </label>
+          {{ form.statut }}
+          {% if form.statut.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.statut.errors }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.date_entree.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.date_entree.label }} <span class="text-red-600">*</span>
+          </label>
+          {{ form.date_entree }}
+          {% if form.date_entree.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.date_entree.errors }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.date_sortie.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.date_sortie.label }}
+          </label>
+          {{ form.date_sortie }}
+          {% if form.date_sortie.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.date_sortie.errors }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.kwh_entree.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.kwh_entree.label }} <span class="text-red-600">*</span>
+          </label>
+          {{ form.kwh_entree }}
+          {% if form.kwh_entree.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.kwh_entree.errors }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.avance_electricite.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.avance_electricite.label }}
+          </label>
+          {{ form.avance_electricite }}
+          {% if form.avance_electricite.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.avance_electricite.errors }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.avance_loyer.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.avance_loyer.label }}
+          </label>
+          {{ form.avance_loyer }}
+          {% if form.avance_loyer.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.avance_loyer.errors }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end space-x-3 pt-4">
+        <a href="{% url 'locataires:liste' %}" class="px-4 py-2 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50">
+          Annuler
+        </a>
+        <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-sm font-medium">
+          {% if object %}Enregistrer les modifications{% else %}Créer le locataire{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+{% endblock %}
+
+

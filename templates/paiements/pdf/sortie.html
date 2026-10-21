@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Reçu de sortie - {{ locataire.nom_complet }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+        
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 10pt;
+            line-height: 1.4;
+            color: #333;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 10px;
+        }
+        
+        .logo {
+            max-width: 100px;
+            max-height: 60px;
+        }
+        
+        .header-info {
+            text-align: right;
+        }
+        
+        .header-info h1 {
+            color: #2563eb;
+            margin: 0 0 5px 0;
+            font-size: 16pt;
+        }
+        
+        .header-info p {
+            margin: 2px 0;
+            font-size: 9pt;
+            color: #666;
+        }
+        
+        .title {
+            text-align: center;
+            background: #2563eb;
+            color: white;
+            padding: 8px;
+            margin: 15px 0;
+            font-size: 12pt;
+            font-weight: bold;
+        }
+        
+        .section {
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            background: #f3f4f6;
+            padding: 6px 10px;
+            font-weight: bold;
+            font-size: 10pt;
+            color: #1f2937;
+            border-left: 3px solid #2563eb;
+            margin-bottom: 8px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+        
+        .info-item {
+            display: flex;
+            font-size: 9pt;
+        }
+        
+        .info-label {
+            color: #666;
+            min-width: 120px;
+        }
+        
+        .info-value {
+            font-weight: 500;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0;
+            font-size: 9pt;
+        }
+        
+        table th, table td {
+            padding: 5px 8px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .text-red {
+            color: #dc2626;
+        }
+        
+        .text-green {
+            color: #16a34a;
+        }
+        
+        .text-orange {
+            color: #ea580c;
+        }
+        
+        .recap-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        .recap-columns {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .recap-col {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .recap-red {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+        }
+        
+        .recap-green {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+        }
+        
+        .recap-col h4 {
+            margin: 0 0 8px 0;
+            font-size: 10pt;
+        }
+        
+        .recap-col ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            font-size: 9pt;
+        }
+        
+        .recap-col li {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+        }
+        
+        .solde-box {
+            border: 2px solid;
+            padding: 12px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .solde-red {
+            border-color: #dc2626;
+            background: #fef2f2;
+        }
+        
+        .solde-green {
+            border-color: #16a34a;
+            background: #f0fdf4;
+        }
+        
+        .solde-title {
+            font-size: 10pt;
+            margin-bottom: 5px;
+        }
+        
+        .solde-montant {
+            font-size: 16pt;
+            font-weight: bold;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+        }
+        
+        .signature-box {
+            width: 45%;
+            text-align: center;
+            font-size: 9pt;
+        }
+        
+        .signature-box p {
+            margin: 5px 0;
+        }
+        
+        .signature-line {
+            border-top: 1px solid #333;
+            margin-top: 40px;
+            padding-top: 5px;
+        }
+        
+        .legal-text {
+            font-size: 8pt;
+            color: #666;
+            margin-top: 20px;
+            text-align: justify;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            {% if parametres and parametres.logo %}
+            <img src="{{ parametres.logo.url }}" alt="Logo" class="logo">
+            {% endif %}
+        </div>
+        <div class="header-info">
+            <h1>REÇU DE SORTIE</h1>
+            <p>N° {{ paiement.pk }}</p>
+            <p>Date: {{ date_generation }}</p>
+        </div>
+    </div>
+
+    <div class="title">
+        SOLDE FINAL DE LOCATION
+    </div>
+
+    <!-- Informations du locataire -->
+    <div class="section">
+        <div class="section-title">👤 INFORMATIONS DU LOCATAIRE</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Nom complet:</span>
+                <span class="info-value">{{ locataire.nom_complet }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Téléphone:</span>
+                <span class="info-value">{{ locataire.telephone }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Chambre:</span>
+                <span class="info-value">{{ chambre.numero }} - {{ maison.nom }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Date d'entrée:</span>
+                <span class="info-value">{{ locataire.date_entree }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Date de sortie:</span>
+                <span class="info-value">{{ locataire.date_sortie }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Détail de l'avance -->
+    <div class="section">
+        <div class="section-title">💰 AVANCE DE LOYER</div>
+        <table>
+            <tr>
+                <td>Avance initiale</td>
+                <td class="text-right">{{ resultat.avance.montant_initial|floatformat:0 }} FCFA</td>
+            </tr>
+            {% if resultat.avance.defalcation_loyers_impayes > 0 %}
+            <tr>
+                <td>Défalcation loyers impayés</td>
+                <td class="text-right text-orange">- {{ resultat.avance.defalcation_loyers_impayes|floatformat:0 }} FCFA</td>
+            </tr>
+            {% endif %}
+            {% if resultat.avance.defalcation_electricite > 0 %}
+            <tr>
+                <td>Défalcation électricité</td>
+                <td class="text-right text-orange">- {{ resultat.avance.defalcation_electricite|floatformat:0 }} FCFA</td>
+            </tr>
+            {% endif %}
+            {% if resultat.avance.defalcation_eau > 0 %}
+            <tr>
+                <td>Défalcation eau</td>
+                <td class="text-right text-orange">- {{ resultat.avance.defalcation_eau|floatformat:0 }} FCFA</td>
+            </tr>
+            {% endif %}
+            {% if resultat.avance.defalcation_dommages > 0 %}
+            <tr>
+                <td>Défalcation dommages</td>
+                <td class="text-right text-orange">- {{ resultat.avance.defalcation_dommages|floatformat:0 }} FCFA</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th>Avance restante</th>
+                <th class="text-right text-red">{{ resultat.avance.montant_final|floatformat:0 }} FCFA</th>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Détail électricité -->
+    <div class="section">
+        <div class="section-title">🔌 ÉLECTRICITÉ</div>
+        <table>
+            {% if is_carte and consommation %}
+            <tr>
+                <td>KWh à l'entrée</td>
+                <td class="text-right">{{ resultat.electricite.kwh_entree|floatformat:2 }} KWh</td>
+            </tr>
+            <tr>
+                <td>KWh à la sortie</td>
+                <td class="text-right">{{ resultat.electricite.kwh_sortie|floatformat:2 }} KWh</td>
+            </tr>
+            <tr>
+                <td><strong>Différence</strong></td>
+                <td class="text-right"><strong>{{ resultat.electricite.difference_kwh|floatformat:2 }} KWh</strong></td>
+            </tr>
+            <tr>
+                <td>Prix du KWh</td>
+                <td class="text-right">{{ resultat.electricite.prix_kwh|floatformat:0 }} FCFA</td>
+            </tr>
+            <tr>
+                <td><strong>Montant (différence × prix)</strong></td>
+                <td class="text-right"><strong>{{ resultat.electricite.montant_difference|floatformat:0 }} FCFA</strong></td>
+            </tr>
+            {% else %}
+            <tr>
+                <td>Montant facture</td>
+                <td class="text-right">{{ resultat.electricite.montant_a_payer|floatformat:0 }} FCFA</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td>Caution électricité</td>
+                <td class="text-right">{{ resultat.electricite.caution_initiale|floatformat:0 }} FCFA</td>
+            </tr>
+            {% if resultat.electricite.defalque_sur_avance > 0 %}
+            <tr>
+                <td>Défalqué sur avance</td>
+                <td class="text-right text-orange">{{ resultat.electricite.defalque_sur_avance|floatformat:0 }} FCFA</td>
+            </tr>
+            {% endif %}
+            <tr>
+                {% if resultat.electricite.du_au_locataire > 0 %}
+                <th>→ Dû au locataire</th>
+                <th class="text-right text-red">{{ resultat.electricite.du_au_locataire|floatformat:0 }} FCFA</th>
+                {% elif resultat.electricite.a_payer_par_locataire > 0 %}
+                <th>→ À payer par le locataire</th>
+                <th class="text-right text-green">{{ resultat.electricite.a_payer_par_locataire|floatformat:0 }} FCFA</th>
+                {% else %}
+                <th>→ Solde</th>
+                <th class="text-right">0 FCFA</th>
+                {% endif %}
+            </tr>
+        </table>
+    </div>
+
+    <!-- Détail dommages -->
+    {% if resultat.dommages.montant > 0 %}
+    <div class="section">
+        <div class="section-title">🔧 DOMMAGES</div>
+        <table>
+            {% if resultat.dommages.description %}
+            <tr>
+                <td colspan="2"><strong>Description:</strong> {{ resultat.dommages.description }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td>Coût des dommages</td>
+                <td class="text-right">{{ resultat.dommages.montant|floatformat:0 }} FCFA</td>
+            </tr>
+            {% if resultat.dommages.defalque_sur_avance > 0 %}
+            <tr>
+                <td>Défalqué sur avance</td>
+                <td class="text-right text-orange">{{ resultat.dommages.defalque_sur_avance|floatformat:0 }} FCFA</td>
+            </tr>
+            {% endif %}
+            <tr>
+                {% if resultat.dommages.a_payer_par_locataire > 0 %}
+                <th>→ Reste à payer par le locataire</th>
+                <th class="text-right text-green">{{ resultat.dommages.a_payer_par_locataire|floatformat:0 }} FCFA</th>
+                {% else %}
+                <th>→ Entièrement couvert</th>
+                <th class="text-right">0 FCFA</th>
+                {% endif %}
+            </tr>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Détail eau -->
+    <div class="section">
+        <div class="section-title">💧 EAU</div>
+        <table>
+            <tr>
+                <td>Caution eau</td>
+                <td class="text-right">{{ resultat.eau.caution_initiale|floatformat:0 }} FCFA</td>
+            </tr>
+            <tr>
+                <td>Montant facture</td>
+                <td class="text-right">- {{ resultat.eau.montant_facture|floatformat:0 }} FCFA</td>
+            </tr>
+            <tr>
+                <td><strong>Solde (Caution - Facture)</strong></td>
+                <td class="text-right {% if resultat.eau.solde >= 0 %}text-red{% else %}text-green{% endif %}"><strong>{{ resultat.eau.solde|floatformat:0 }} FCFA</strong></td>
+            </tr>
+            {% if resultat.eau.defalque_sur_avance > 0 %}
+            <tr>
+                <td>Défalqué sur avance</td>
+                <td class="text-right text-orange">{{ resultat.eau.defalque_sur_avance|floatformat:0 }} FCFA</td>
+            </tr>
+            {% endif %}
+            <tr>
+                {% if resultat.eau.solde > 0 %}
+                <th>→ Propriétaire doit au locataire</th>
+                <th class="text-right text-red">{{ resultat.eau.solde|floatformat:0 }} FCFA</th>
+                {% elif resultat.eau.solde < 0 %}
+                <th>→ Locataire doit au propriétaire</th>
+                <th class="text-right text-green">{{ resultat.eau.a_payer_par_locataire|floatformat:0 }} FCFA</th>
+                {% else %}
+                <th>→ Solde</th>
+                <th class="text-right">0 FCFA (quitte)</th>
+                {% endif %}
+            </tr>
+        </table>
+    </div>
+
+    <!-- Récapitulatif -->
+    <div class="recap-box">
+        <div class="recap-columns">
+            <div class="recap-col recap-red">
+                <h4 class="text-red">🔴 DÛ AU LOCATAIRE</h4>
+                <ul>
+                    <li><span>Avance restante:</span><span>{{ resultat.avance.montant_final|floatformat:0 }} FCFA</span></li>
+                    {% if resultat.electricite.du_au_locataire > 0 %}
+                    <li><span>Reste caution élec:</span><span>{{ resultat.electricite.du_au_locataire|floatformat:0 }} FCFA</span></li>
+                    {% endif %}
+                    {% if resultat.eau.du_au_locataire > 0 %}
+                    <li><span>Reste caution eau:</span><span>{{ resultat.eau.du_au_locataire|floatformat:0 }} FCFA</span></li>
+                    {% endif %}
+                </ul>
+                <hr>
+                <strong>TOTAL: {{ resultat.total_du_au_locataire|floatformat:0 }} FCFA</strong>
+            </div>
+            <div class="recap-col recap-green">
+                <h4 class="text-green">🟢 À PAYER PAR LE LOCATAIRE</h4>
+                <ul>
+                    {% if resultat.electricite.a_payer_par_locataire > 0 %}
+                    <li><span>Dette électricité:</span><span>{{ resultat.electricite.a_payer_par_locataire|floatformat:0 }} FCFA</span></li>
+                    {% endif %}
+                    {% if resultat.eau.a_payer_par_locataire > 0 %}
+                    <li><span>Dette eau:</span><span>{{ resultat.eau.a_payer_par_locataire|floatformat:0 }} FCFA</span></li>
+                    {% endif %}
+                    {% if resultat.dommages.a_payer_par_locataire > 0 %}
+                    <li><span>Dommages:</span><span>{{ resultat.dommages.a_payer_par_locataire|floatformat:0 }} FCFA</span></li>
+                    {% endif %}
+                    {% if resultat.total_a_payer_par_locataire == 0 %}
+                    <li><span style="font-style: italic;">Aucune dette</span></li>
+                    {% endif %}
+                </ul>
+                <hr>
+                <strong>TOTAL: {{ resultat.total_a_payer_par_locataire|floatformat:0 }} FCFA</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Solde final -->
+    {% if resultat.solde_final > 0 %}
+    <div class="solde-box solde-red">
+        <div class="solde-title">SOLDE FINAL = {{ resultat.total_du_au_locataire|floatformat:0 }} - {{ resultat.total_a_payer_par_locataire|floatformat:0 }} = {{ resultat.solde_final|floatformat:0 }} FCFA</div>
+        <div class="solde-montant text-red">PROPRIÉTAIRE DOIT AU LOCATAIRE: {{ resultat.solde_final|floatformat:0 }} FCFA</div>
+    </div>
+    {% elif resultat.solde_final < 0 %}
+    <div class="solde-box solde-green">
+        <div class="solde-title">SOLDE FINAL = {{ resultat.total_du_au_locataire|floatformat:0 }} - {{ resultat.total_a_payer_par_locataire|floatformat:0 }} = {{ resultat.solde_final|floatformat:0 }} FCFA</div>
+        <div class="solde-montant text-green">LOCATAIRE DOIT AU PROPRIÉTAIRE: {{ resultat.total_a_payer_par_locataire|floatformat:0 }} FCFA</div>
+    </div>
+    {% else %}
+    <div class="solde-box" style="border-color: #666; background: #f5f5f5;">
+        <div class="solde-title">SOLDE FINAL = {{ resultat.total_du_au_locataire|floatformat:0 }} - {{ resultat.total_a_payer_par_locataire|floatformat:0 }} = 0 FCFA</div>
+        <div class="solde-montant">QUITTE: Aucun montant à échanger</div>
+    </div>
+    {% endif %}
+
+    <!-- Signatures -->
+    <div class="footer">
+        <div class="signature-section">
+            <div class="signature-box">
+                <p>Le Propriétaire</p>
+                {% if parametres and parametres.signature %}
+                <img src="{{ parametres.signature.url }}" alt="Signature" style="max-height: 50px;">
+                {% endif %}
+                <div class="signature-line">
+                    Signature
+                </div>
+            </div>
+            <div class="signature-box">
+                <p>Le Locataire</p>
+                <div class="signature-line">
+                    Signature
+                </div>
+            </div>
+        </div>
+
+        {% if parametres and parametres.texte_legal_sortie %}
+        <div class="legal-text">
+            {{ parametres.texte_legal_sortie }}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

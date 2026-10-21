@@ -1,0 +1,120 @@
+{% extends "pdf/base_recu.html" %}
+
+{% block title %}Reçu Loyer - {{ locataire.nom_complet }}{% endblock %}
+
+{% block header_title %}REÇU DE LOYER MENSUEL{% endblock %}
+{% block header_numero %}N° M-{{ paiement.pk }}{% endblock %}
+
+{% block content %}
+    <div class="title">
+        PAIEMENT DE LOYER - {{ nom_mois|upper }} {{ paiement.annee }}
+    </div>
+
+    <!-- Informations du locataire -->
+    <div class="section">
+        <div class="section-title">👤 INFORMATIONS DU LOCATAIRE</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Nom complet:</span>
+                <span class="info-value">{{ locataire.nom_complet }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Téléphone:</span>
+                <span class="info-value">{{ locataire.telephone|default:"-" }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Chambre:</span>
+                <span class="info-value">{{ chambre.numero }} - {{ chambre.maison.nom }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Quartier:</span>
+                <span class="info-value">{{ chambre.maison.quartier }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Détail du paiement -->
+    <div class="section">
+        <div class="section-title">💰 DÉTAIL DU PAIEMENT</div>
+        <table>
+            <tbody>
+                <tr>
+                    <td>Période concernée</td>
+                    <td class="text-right">
+                        <strong>{{ nom_mois }} {{ paiement.annee }}</strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Loyer mensuel dû</td>
+                    <td class="text-right">{{ chambre.prix_location|floatformat:0 }} FCFA</td>
+                </tr>
+                <tr style="background: #f0fdf4;">
+                    <td style="font-weight: bold;">Montant payé</td>
+                    <td class="text-right" style="font-weight: bold; color: #166534;">{{ paiement.montant_paye|floatformat:0 }} FCFA</td>
+                </tr>
+                {% if paiement.reste > 0 %}
+                <tr style="background: #fef2f2;">
+                    <td style="color: #991b1b;">Reste à payer</td>
+                    <td class="text-right" style="color: #991b1b; font-weight: bold;">{{ paiement.reste|floatformat:0 }} FCFA</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td>Date du paiement</td>
+                    <td class="text-right">{{ paiement.date_paiement }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Total -->
+    <div class="total-box">
+        <div class="total-title">MONTANT REÇU</div>
+        <div class="total-montant">{{ paiement.montant_paye|floatformat:0 }} FCFA</div>
+        {% if paiement.reste == 0 %}
+        <div style="margin-top: 5px;">
+            <span class="badge badge-success">✓ MOIS SOLDÉ</span>
+        </div>
+        {% else %}
+        <div style="margin-top: 5px;">
+            <span class="badge badge-warning">Paiement partiel - Reste {{ paiement.reste|floatformat:0 }} FCFA</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Situation du locataire -->
+    <div class="section">
+        <div class="section-title">📊 SITUATION DU LOCATAIRE</div>
+        <table>
+            <tbody>
+                <tr>
+                    <td>Date d'entrée</td>
+                    <td class="text-right">{{ locataire.date_entree }}</td>
+                </tr>
+                <tr>
+                    <td>Avance restante</td>
+                    <td class="text-right">{{ locataire.avance_loyer|floatformat:0 }} FCFA</td>
+                </tr>
+                <tr>
+                    <td>Équivalent en mois</td>
+                    <td class="text-right">{{ avance_mois }} mois</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Note -->
+    <div class="section">
+        <div style="background: #eff6ff; border: 1px solid #3b82f6; padding: 10px; border-radius: 5px; font-size: 9pt;">
+            <strong>ℹ️ Rappel:</strong> Le loyer est payable au plus tard le {{ locataire.date_entree.day }} de chaque mois.
+            Passé cette date, le montant sera automatiquement prélevé sur l'avance versée.
+        </div>
+    </div>
+{% endblock %}
+
+{% block legal_text %}
+{% if parametres and parametres.texte_legal_mensuel %}
+<div class="legal-text">
+    {{ parametres.texte_legal_mensuel }}
+</div>
+{% endif %}
+{% endblock %}

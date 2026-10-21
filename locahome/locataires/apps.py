@@ -1,0 +1,10 @@
+from django.apps import AppConfig
+
+
+class LocatairesConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "locahome.locataires"
+    verbose_name = "Locataires"
+
+
+

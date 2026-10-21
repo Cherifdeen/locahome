@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Paiements - LocaHome{% endblock %}
+
+{% block content %}
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-semibold text-gray-800">Liste des paiements</h1>
+    <div class="flex items-center space-x-2">
+      <a href="{% url 'chambres:libres' %}" class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded">
+        + Entrée
+      </a>
+      <a href="{% url 'paiements:mensuel' %}" class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded">
+        + Mensuel
+      </a>
+      <a href="{% url 'paiements:sortie' %}" class="inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded">
+        + Sortie
+      </a>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="bg-white shadow rounded p-4 mb-4">
+    <form method="get" class="flex flex-wrap items-end gap-4">
+      <div class="flex-1 min-w-[200px]">
+        <label for="locataire" class="block text-sm font-medium text-gray-700 mb-1">Locataire</label>
+        <select name="locataire" id="locataire" class="w-full border rounded px-3 py-2">
+          <option value="">Tous</option>
+          {% for locataire in locataires %}
+            <option value="{{ locataire.pk }}" {% if locataire_filtre == locataire.pk|stringformat:"s" or locataire_filtre == locataire.pk %}selected{% endif %}>
+              {{ locataire.nom_complet }} - {{ locataire.chambre.numero }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="flex-1 min-w-[150px]">
+        <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+        <select name="type" id="type" class="w-full border rounded px-3 py-2">
+          <option value="">Tous</option>
+          <option value="FORMALITES" {% if type_filtre == "FORMALITES" %}selected{% endif %}>Formalités</option>
+          <option value="ENTREE" {% if type_filtre == "ENTREE" %}selected{% endif %}>Entrée</option>
+          <option value="MENSUEL" {% if type_filtre == "MENSUEL" %}selected{% endif %}>Mensuel</option>
+          <option value="SORTIE" {% if type_filtre == "SORTIE" %}selected{% endif %}>Sortie</option>
+        </select>
+      </div>
+      <div class="flex-1 min-w-[120px]">
+        <label for="mois" class="block text-sm font-medium text-gray-700 mb-1">Mois</label>
+        <select name="mois" id="mois" class="w-full border rounded px-3 py-2">
+          <option value="">Tous</option>
+          {% for num, nom in mois_liste %}
+            <option value="{{ num }}" {% if mois_filtre == num|stringformat:"s" %}selected{% endif %}>{{ nom }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="flex-1 min-w-[100px]">
+        <label for="annee" class="block text-sm font-medium text-gray-700 mb-1">Année</label>
+        <select name="annee" id="annee" class="w-full border rounded px-3 py-2">
+          <option value="">Toutes</option>
+          {% for annee in annees %}
+            <option value="{{ annee }}" {% if annee_filtre == annee|stringformat:"s" or annee_filtre == annee %}selected{% endif %}>{{ annee }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <button type="submit" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm font-medium">
+          Filtrer
+        </button>
+        <a href="{% url 'paiements:liste' %}" class="px-4 py-2 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50 ml-2">
+          Réinitialiser
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <div class="bg-white shadow rounded overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+          <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Locataire</th>
+          <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+          <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Période</th>
+          <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant payé</th>
+          <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reste</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        {% for paiement in paiements %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-2 text-sm text-gray-700">{{ paiement.date_paiement }}</td>
+            <td class="px-4 py-2 text-sm text-gray-900 font-medium">{{ paiement.locataire.nom_complet }}</td>
+            <td class="px-4 py-2 text-sm">
+              {% if paiement.type == "FORMALITES" %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-800">
+                  Formalités
+                </span>
+              {% elif paiement.type == "ENTREE" %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800">
+                  Entrée
+                </span>
+              {% elif paiement.type == "MENSUEL" %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800">
+                  Mensuel
+                </span>
+              {% else %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-800">
+                  Sortie
+                </span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-2 text-sm text-gray-700">
+              {% if paiement.mois and paiement.annee %}
+                {% if paiement.mois == 1 %}Janvier
+                {% elif paiement.mois == 2 %}Février
+                {% elif paiement.mois == 3 %}Mars
+                {% elif paiement.mois == 4 %}Avril
+                {% elif paiement.mois == 5 %}Mai
+                {% elif paiement.mois == 6 %}Juin
+                {% elif paiement.mois == 7 %}Juillet
+                {% elif paiement.mois == 8 %}Août
+                {% elif paiement.mois == 9 %}Septembre
+                {% elif paiement.mois == 10 %}Octobre
+                {% elif paiement.mois == 11 %}Novembre
+                {% elif paiement.mois == 12 %}Décembre
+                {% endif %} {{ paiement.annee }}
+              {% else %}
+                <span class="text-gray-400">—</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-2 text-sm text-gray-900 font-medium">{{ paiement.montant_paye }} FCFA</td>
+            <td class="px-4 py-2 text-sm text-gray-700">
+              {% if paiement.reste > 0 %}
+                <span class="text-red-600 font-medium">{{ paiement.reste }} FCFA</span>
+              {% else %}
+                <span class="text-gray-400">—</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="px-4 py-6 text-center text-sm text-gray-500">
+              Aucun paiement enregistré pour le moment.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
+

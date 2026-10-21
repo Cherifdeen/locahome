@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Modifier{% else %}Créer{% endif %} une chambre - LocaHome{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <div class="bg-white rounded-lg shadow p-6">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">
+      {% if object %}Modifier la chambre {{ object.numero }}{% else %}Ajouter une chambre{% endif %}
+    </h1>
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="bg-red-100 text-red-800 p-3 rounded">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <div>
+        <label for="{{ form.maison.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          Maison *
+        </label>
+        {{ form.maison }}
+        {% if form.maison.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.maison.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="{{ form.numero.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            Numéro de la chambre *
+          </label>
+          {{ form.numero }}
+          {% if form.numero.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.numero.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.nom.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            Nom (facultatif)
+          </label>
+          {{ form.nom }}
+        </div>
+      </div>
+
+      <div>
+        <label for="{{ form.prix_location.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          Prix de location mensuel (FCFA) *
+        </label>
+        {{ form.prix_location }}
+        {% if form.prix_location.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.prix_location.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Cautions et type de décompteur -->
+      <div class="bg-blue-50 border border-blue-200 rounded p-4 mt-4">
+        <h3 class="text-sm font-semibold text-blue-800 mb-3">💡 Cautions et compteur électrique</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="{{ form.caution_eau.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              Caution eau (FCFA) *
+            </label>
+            {{ form.caution_eau }}
+            {% if form.caution_eau.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.caution_eau.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <div>
+            <label for="{{ form.caution_electricite.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              Caution électricité (FCFA) *
+            </label>
+            {{ form.caution_electricite }}
+            {% if form.caution_electricite.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.caution_electricite.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <label for="{{ form.type_decompteur.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            Type de décompteur électrique *
+          </label>
+          {{ form.type_decompteur }}
+          {% if form.type_decompteur.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.type_decompteur.errors.0 }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">
+            Carte = compteur à recharge / Classique = facture mensuelle
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          Description
+        </label>
+        {{ form.description }}
+      </div>
+
+      <div class="flex justify-end space-x-3 pt-4">
+        <a href="{% if object %}{% url 'chambres:detail' object.pk %}{% else %}{% url 'maisons:liste' %}{% endif %}" 
+           class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition">
+          Annuler
+        </a>
+        <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition">
+          {% if object %}Enregistrer{% else %}Créer{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

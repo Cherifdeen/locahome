@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Paiement d'entrée - LocaHome{% endblock %}
+
+{% block content %}
+  <div class="mb-4">
+    <a href="{% url 'paiements:liste' %}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; Retour à la liste des paiements</a>
+  </div>
+
+  <div class="bg-white shadow rounded p-6 max-w-2xl">
+    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Enregistrer un paiement d'entrée</h1>
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="bg-red-100 text-red-800 p-3 rounded">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <div>
+        <label for="{{ form.locataire.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.locataire.label }} <span class="text-red-600">*</span>
+        </label>
+        {{ form.locataire }}
+        {% if form.locataire.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.locataire.errors }}</p>
+        {% endif %}
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="{{ form.montant_paye.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.montant_paye.label }} <span class="text-red-600">*</span>
+          </label>
+          {{ form.montant_paye }}
+          {% if form.montant_paye.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.montant_paye.errors }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.reste.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.reste.label }}
+          </label>
+          {{ form.reste }}
+          {% if form.reste.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.reste.errors }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.date_paiement.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.date_paiement.label }} <span class="text-red-600">*</span>
+          </label>
+          {{ form.date_paiement }}
+          {% if form.date_paiement.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.date_paiement.errors }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end space-x-3 pt-4">
+        <a href="{% url 'paiements:liste' %}" class="px-4 py-2 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50">
+          Annuler
+        </a>
+        <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-medium">
+          Enregistrer le paiement
+        </button>
+      </div>
+    </form>
+  </div>
+{% endblock %}
+

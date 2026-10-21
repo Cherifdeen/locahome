@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Mes maisons - LocaHome{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">Mes maisons</h1>
+  <a href="{% url 'maisons:ajouter' %}" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">
+    + Ajouter une maison
+  </a>
+</div>
+
+{% if maisons %}
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for maison in maisons %}
+      <div class="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden">
+        {% if maison.photo %}
+          <img src="{{ maison.photo.url }}" alt="{{ maison.nom }}" class="w-full h-40 object-cover">
+        {% else %}
+          <div class="w-full h-40 bg-gray-200 flex items-center justify-center">
+            <span class="text-4xl">🏠</span>
+          </div>
+        {% endif %}
+        
+        <div class="p-4">
+          <h2 class="text-lg font-semibold text-gray-800">{{ maison.nom }}</h2>
+          <p class="text-sm text-gray-500 mt-1">
+            <span class="inline-block bg-gray-100 px-2 py-1 rounded text-xs">{{ maison.quartier }}</span>
+            <span class="inline-block bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs ml-1">{{ maison.get_type_maison_display }}</span>
+          </p>
+          
+          <div class="mt-3 flex justify-between items-center text-sm">
+            <div>
+              <span class="text-green-600 font-medium">{{ maison.nombre_chambres_libres }}</span> libre(s) /
+              <span class="text-gray-600">{{ maison.nombre_chambres_total }} chambre(s)</span>
+            </div>
+          </div>
+          
+          {% if maison.prix_minimum %}
+            <p class="text-sm text-gray-600 mt-2">À partir de <strong>{{ maison.prix_minimum|floatformat:0 }} FCFA</strong></p>
+          {% endif %}
+          
+          <div class="mt-4 flex space-x-2">
+            <a href="{% url 'maisons:detail' maison.pk %}" class="flex-1 text-center bg-indigo-600 text-white px-3 py-2 rounded text-sm hover:bg-indigo-700 transition">
+              Voir
+            </a>
+            <a href="{% url 'maisons:modifier' maison.pk %}" class="px-3 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50 transition">
+              ✏️
+            </a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="bg-white rounded-lg shadow p-8 text-center">
+    <span class="text-5xl mb-4 block">🏠</span>
+    <h2 class="text-xl font-semibold text-gray-700 mb-2">Aucune maison</h2>
+    <p class="text-gray-500 mb-4">Commencez par ajouter votre première maison.</p>
+    <a href="{% url 'maisons:ajouter' %}" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition">
+      + Ajouter une maison
+    </a>
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "pdf/base_recu.html" %}
+
+{% block title %}Reçu Premier Mois - {{ locataire.nom_complet }}{% endblock %}
+
+{% block header_title %}REÇU DE LOYER - PREMIER MOIS{% endblock %}
+{% block header_numero %}N° E-{{ paiement.pk }}{% endblock %}
+
+{% block content %}
+    <div class="title">
+        PAIEMENT DU PREMIER MOIS DE LOYER
+    </div>
+
+    <!-- Informations du locataire -->
+    <div class="section">
+        <div class="section-title">👤 INFORMATIONS DU LOCATAIRE</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Nom complet:</span>
+                <span class="info-value">{{ locataire.nom_complet }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Téléphone:</span>
+                <span class="info-value">{{ locataire.telephone|default:"-" }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Chambre:</span>
+                <span class="info-value">{{ chambre.numero }} - {{ chambre.maison.nom }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Date d'entrée:</span>
+                <span class="info-value">{{ locataire.date_entree }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Détail du paiement -->
+    <div class="section">
+        <div class="section-title">💰 DÉTAIL DU PAIEMENT</div>
+        <table>
+            <tbody>
+                <tr>
+                    <td>Période concernée</td>
+                    <td class="text-right">
+                        <strong>{{ nom_mois }} {{ paiement.annee }}</strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Loyer mensuel</td>
+                    <td class="text-right">{{ chambre.prix_location|floatformat:0 }} FCFA</td>
+                </tr>
+                <tr>
+                    <td>Montant payé</td>
+                    <td class="text-right"><strong>{{ paiement.montant_paye|floatformat:0 }} FCFA</strong></td>
+                </tr>
+                {% if paiement.reste > 0 %}
+                <tr style="background: #fef2f2;">
+                    <td style="color: #991b1b;">Reste à payer</td>
+                    <td class="text-right" style="color: #991b1b; font-weight: bold;">{{ paiement.reste|floatformat:0 }} FCFA</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td>Date du paiement</td>
+                    <td class="text-right">{{ paiement.date_paiement }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Total -->
+    <div class="total-box">
+        <div class="total-title">MONTANT REÇU</div>
+        <div class="total-montant">{{ paiement.montant_paye|floatformat:0 }} FCFA</div>
+        {% if paiement.reste == 0 %}
+        <div style="margin-top: 5px;">
+            <span class="badge badge-success">✓ SOLDÉ</span>
+        </div>
+        {% else %}
+        <div style="margin-top: 5px;">
+            <span class="badge badge-warning">Paiement partiel</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Récapitulatif des formalités -->
+    <div class="section">
+        <div class="section-title">📋 RÉCAPITULATIF DE L'ENTRÉE</div>
+        <table>
+            <tbody>
+                <tr>
+                    <td>Avance versée</td>
+                    <td class="text-right">{{ locataire.avance_initiale|floatformat:0 }} FCFA</td>
+                </tr>
+                <tr>
+                    <td>Caution eau</td>
+                    <td class="text-right">{{ locataire.caution_eau|floatformat:0 }} FCFA</td>
+                </tr>
+                <tr>
+                    <td>Caution électricité</td>
+                    <td class="text-right">{{ locataire.caution_electricite|floatformat:0 }} FCFA</td>
+                </tr>
+                <tr>
+                    <td>Premier mois</td>
+                    <td class="text-right">{{ paiement.montant_paye|floatformat:0 }} FCFA</td>
+                </tr>
+                <tr style="background: #f3f4f6; font-weight: bold;">
+                    <td>TOTAL VERSÉ À L'ENTRÉE</td>
+                    <td class="text-right">{{ total_entree|floatformat:0 }} FCFA</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block legal_text %}
+{% if parametres and parametres.texte_legal_entree %}
+<div class="legal-text">
+    {{ parametres.texte_legal_entree }}
+</div>
+{% endif %}
+{% endblock %}

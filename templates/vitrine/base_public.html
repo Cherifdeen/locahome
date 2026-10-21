@@ -1,0 +1,101 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>{% block title %}LocaHome - Trouvez votre logement{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="LocaHome - Plateforme de location de chambres et appartements. Trouvez votre logement idéal." />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" />
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+        <a href="{% url 'vitrine:accueil' %}" class="flex items-center space-x-2">
+          <span class="text-2xl">🏠</span>
+          <span class="text-xl font-bold text-indigo-700">LocaHome</span>
+        </a>
+        <div class="flex items-center space-x-4 text-sm">
+          {% if user.is_authenticated %}
+            <!-- Menu déroulant pour propriétaire connecté -->
+            <div class="relative" x-data="{ open: false }">
+              <button @click="open = !open" class="flex items-center space-x-2 text-indigo-600 hover:text-indigo-800 font-medium focus:outline-none">
+                <span>☰</span>
+                <span>Mon espace</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+              <div x-show="open" @click.away="open = false" 
+                   class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+                <a href="{% url 'dashboard' %}" class="block px-4 py-2 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+                  🏠 Dashboard
+                </a>
+                <a href="{% url 'maisons:liste' %}" class="block px-4 py-2 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+                  🏘️ Mes maisons
+                </a>
+                <a href="{% url 'chambres:liste' %}" class="block px-4 py-2 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+                  🛏️ Chambres
+                </a>
+                <a href="{% url 'locataires:liste' %}" class="block px-4 py-2 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+                  👤 Locataires
+                </a>
+                <a href="{% url 'paiements:liste' %}" class="block px-4 py-2 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+                  💰 Paiements
+                </a>
+                <hr class="my-2">
+                <form method="post" action="{% url 'logout' %}">
+                  {% csrf_token %}
+                  <button type="submit" class="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50">
+                    🚪 Déconnexion
+                  </button>
+                </form>
+              </div>
+            </div>
+          {% else %}
+            <a href="{% url 'login' %}" class="text-gray-600 hover:text-gray-800">Connexion</a>
+            <a href="{% url 'comptes:inscription' %}" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">
+              Créer un compte propriétaire
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+    
+    <!-- Alpine.js pour le menu déroulant -->
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    <!-- Contenu -->
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-300 mt-16">
+      <div class="max-w-6xl mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div>
+            <h3 class="text-white font-semibold mb-3">🏠 LocaHome</h3>
+            <p class="text-sm">Trouvez facilement votre chambre ou appartement à louer.</p>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold mb-3">Liens utiles</h3>
+            <ul class="text-sm space-y-2">
+              <li><a href="{% url 'vitrine:accueil' %}" class="hover:text-white">Accueil</a></li>
+              <li><a href="{% url 'comptes:inscription' %}" class="hover:text-white">Devenir propriétaire</a></li>
+              <li><a href="{% url 'login' %}" class="hover:text-white">Connexion</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold mb-3">Contact</h3>
+            <p class="text-sm">Des questions ? Contactez-nous.</p>
+          </div>
+        </div>
+        <div class="border-t border-gray-700 mt-8 pt-4 text-center text-sm">
+          © 2025 LocaHome. Tous droits réservés.
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

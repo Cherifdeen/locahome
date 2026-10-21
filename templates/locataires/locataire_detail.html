@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Détails locataire {{ locataire.nom_complet }} - LocaHome{% endblock %}
+
+{% block content %}
+  <div class="mb-4 flex items-center justify-between">
+    <a href="{% url 'locataires:liste' %}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; Retour à la liste des locataires</a>
+    <a href="{% url 'locataires:modifier' locataire.pk %}" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded">
+      Modifier ce locataire
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Infos personnelles -->
+    <section class="lg:col-span-1 bg-white shadow rounded p-4">
+      <h1 class="text-xl font-semibold text-gray-800 mb-3">{{ locataire.nom_complet }}</h1>
+      {% if locataire.telephone %}
+        <p class="text-sm text-gray-600 mb-1"><span class="font-medium">Téléphone :</span> {{ locataire.telephone }}</p>
+      {% endif %}
+      {% if locataire.email %}
+        <p class="text-sm text-gray-600 mb-1"><span class="font-medium">Email :</span> {{ locataire.email }}</p>
+      {% endif %}
+      {% if locataire.adresse %}
+        <p class="text-sm text-gray-600 mb-1"><span class="font-medium">Adresse :</span> {{ locataire.adresse }}</p>
+      {% endif %}
+      <p class="text-sm text-gray-600 mb-1"><span class="font-medium">Chambre :</span> {{ locataire.chambre.numero }}</p>
+      <p class="text-sm text-gray-600 mb-1"><span class="font-medium">Date d'entrée :</span> {{ locataire.date_entree }}</p>
+      {% if locataire.date_sortie %}
+        <p class="text-sm text-gray-600 mb-1"><span class="font-medium">Date de sortie :</span> {{ locataire.date_sortie }}</p>
+      {% endif %}
+      <p class="text-sm text-gray-600 mb-3">
+        <span class="font-medium">Statut :</span>
+        {% if locataire.statut == "EN_ATTENTE" %}
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-yellow-100 text-yellow-800">
+            En attente
+          </span>
+        {% elif locataire.statut == "EN_COURS" %}
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800">
+            En cours
+          </span>
+        {% else %}
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-800">
+            Sorti
+          </span>
+        {% endif %}
+      </p>
+      {% if locataire.statut == "EN_ATTENTE" %}
+        <div class="mt-3">
+          <a href="{% url 'locataires:premier_mois' locataire.pk %}" 
+             class="inline-block w-full text-center bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 font-medium">
+            Continuer le paiement
+          </a>
+          <p class="text-xs text-gray-500 mt-1 text-center">Paiement du premier mois en attente</p>
+        </div>
+      {% endif %}
+      {% if locataire.statut == "EN_COURS" and en_retard %}
+        <div class="mt-3 p-2 bg-red-50 border border-red-200 rounded">
+          <p class="text-sm text-red-800 font-medium">⚠️ Paiement en retard</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <!-- Paiements, KWh, etc. -->
+    <section class="lg:col-span-2 space-y-6">
+      <!-- Paiements -->
+      <div class="bg-white shadow rounded p-4">
+        <h2 class="text-lg font-semibold text-gray-800 mb-3">Historique des paiements</h2>
+        {% if paiements %}
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Montant payé</th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Reste</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {% for paiement in paiements %}
+                  <tr>
+                    <td class="px-3 py-2 text-sm text-gray-700">{{ paiement.get_type_display }}</td>
+                    <td class="px-3 py-2 text-sm text-gray-700">{{ paiement.date_paiement }}</td>
+                    <td class="px-3 py-2 text-sm text-gray-700 font-medium">{{ paiement.montant_paye }} FCFA</td>
+                    <td class="px-3 py-2 text-sm text-gray-700">{{ paiement.reste }} FCFA</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-sm text-gray-500">Aucun paiement enregistré pour le moment.</p>
+        {% endif %}
+      </div>
+
+      <!-- KWh -->
+      <div class="bg-white shadow rounded p-4">
+        <h2 class="text-lg font-semibold text-gray-800 mb-3">Consommation KWh</h2>
+        <p class="text-sm text-gray-600 mb-1"><span class="font-medium">KWh à l'entrée :</span> {{ locataire.kwh_entree }}</p>
+        <p class="text-sm text-gray-600 mb-1"><span class="font-medium">Avance électricité :</span> {{ locataire.avance_electricite }} FCFA</p>
+        {% if consommation_kwh %}
+          <div class="mt-3 p-3 bg-gray-50 rounded">
+            <p class="text-sm text-gray-600 mb-1"><span class="font-medium">KWh à la sortie :</span> {{ consommation_kwh.kwh_sortie }}</p>
+            <p class="text-sm text-gray-600 mb-1"><span class="font-medium">Consommation :</span> {{ consommation_kwh.consommation }} KWh</p>
+            <p class="text-sm text-gray-600 mb-1"><span class="font-medium">Montant consommation :</span> {{ consommation_kwh.montant_conso }} FCFA</p>
+            {% if consommation_kwh.dette > 0 %}
+              <p class="text-sm text-red-600 font-medium mt-2">Dette : {{ consommation_kwh.dette }} FCFA</p>
+            {% endif %}
+            {% if consommation_kwh.remboursement > 0 %}
+              <p class="text-sm text-green-600 font-medium mt-2">Remboursement : {{ consommation_kwh.remboursement }} FCFA</p>
+            {% endif %}
+          </div>
+        {% else %}
+          <p class="text-sm text-gray-500 mt-2">Aucune consommation enregistrée (le locataire n'a pas encore quitté la chambre).</p>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+{% endblock %}
+
+

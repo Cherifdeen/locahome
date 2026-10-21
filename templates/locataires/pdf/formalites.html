@@ -1,0 +1,118 @@
+{% extends "pdf/base_recu.html" %}
+
+{% block title %}Reçu Formalités - {{ locataire.nom_complet }}{% endblock %}
+
+{% block header_title %}REÇU DE FORMALITÉS D'ENTRÉE{% endblock %}
+{% block header_numero %}N° F-{{ paiement.pk }}{% endblock %}
+
+{% block content %}
+    <div class="title">
+        FORMALITÉS D'ENTRÉE - AVANCE ET CAUTIONS
+    </div>
+
+    <!-- Informations du locataire -->
+    <div class="section">
+        <div class="section-title">👤 INFORMATIONS DU LOCATAIRE</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Nom complet:</span>
+                <span class="info-value">{{ locataire.nom_complet }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Téléphone:</span>
+                <span class="info-value">{{ locataire.telephone|default:"-" }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Email:</span>
+                <span class="info-value">{{ locataire.email|default:"-" }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Date d'entrée:</span>
+                <span class="info-value">{{ locataire.date_entree }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informations de la chambre -->
+    <div class="section">
+        <div class="section-title">🏠 CHAMBRE ATTRIBUÉE</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Maison:</span>
+                <span class="info-value">{{ chambre.maison.nom }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Chambre:</span>
+                <span class="info-value">{{ chambre.numero }}{% if chambre.nom %} - {{ chambre.nom }}{% endif %}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Quartier:</span>
+                <span class="info-value">{{ chambre.maison.quartier }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Loyer mensuel:</span>
+                <span class="info-value">{{ chambre.prix_location|floatformat:0 }} FCFA</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Index KWh entrée:</span>
+                <span class="info-value">{{ locataire.kwh_entree|floatformat:2 }} KWh</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Nombre de clés:</span>
+                <span class="info-value">{{ locataire.nombre_cles }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Détail des paiements -->
+    <div class="section">
+        <div class="section-title">💰 DÉTAIL DES SOMMES VERSÉES</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Désignation</th>
+                    <th class="text-right">Montant</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <strong>Avance sur loyer</strong><br>
+                        <small style="color: #666;">{{ nombre_mois_avance }} mois × {{ chambre.prix_location|floatformat:0 }} FCFA</small>
+                    </td>
+                    <td class="text-right">{{ montant_avance|floatformat:0 }} FCFA</td>
+                </tr>
+                <tr>
+                    <td>Caution eau</td>
+                    <td class="text-right">{{ locataire.caution_eau|floatformat:0 }} FCFA</td>
+                </tr>
+                <tr>
+                    <td>Caution électricité</td>
+                    <td class="text-right">{{ locataire.caution_electricite|floatformat:0 }} FCFA</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Total -->
+    <div class="total-box">
+        <div class="total-title">TOTAL FORMALITÉS D'ENTRÉE</div>
+        <div class="total-montant">{{ paiement.montant_paye|floatformat:0 }} FCFA</div>
+    </div>
+
+    <!-- Note -->
+    <div class="section">
+        <div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 10px; border-radius: 5px; font-size: 9pt;">
+            <strong>⚠️ Note importante:</strong> Ce reçu concerne uniquement les formalités d'entrée (avance et cautions).
+            Le paiement du premier mois de loyer fait l'objet d'un reçu séparé.
+        </div>
+    </div>
+{% endblock %}
+
+{% block legal_text %}
+{% if parametres and parametres.texte_legal_entree %}
+<div class="legal-text">
+    {{ parametres.texte_legal_entree }}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion - LocaHome{% endblock %}
+
+{% block content %}
+  <div class="max-w-md mx-auto bg-white shadow rounded p-6 mt-10">
+    <h1 class="text-2xl font-semibold mb-4 text-gray-800 text-center">Connexion</h1>
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div class="bg-red-100 text-red-800 p-3 rounded">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <div class="space-y-1">
+        <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ form.username.id_for_label }}">
+          Nom d'utilisateur
+        </label>
+        {{ form.username }}
+      </div>
+
+      <div class="space-y-1">
+        <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ form.password.id_for_label }}">
+          Mot de passe
+        </label>
+        {{ form.password }}
+      </div>
+
+      <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded">
+        Se connecter
+      </button>
+    </form>
+
+    <p class="text-center text-sm text-gray-600 mt-6">
+      Pas encore de compte ?
+      <a href="{% url 'comptes:inscription' %}" class="text-indigo-600 hover:text-indigo-800 font-medium">S'inscrire</a>
+    </p>
+  </div>
+{% endblock %}
+
+

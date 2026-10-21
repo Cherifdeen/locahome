@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}{% if form.instance.pk %}Modifier{% else %}Ajouter{% endif %} une maison - LocaHome{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <div class="bg-white rounded-lg shadow p-6">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">
+      {% if form.instance.pk %}Modifier la maison{% else %}Ajouter une maison{% endif %}
+    </h1>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-4">
+      {% csrf_token %}
+
+      <div>
+        <label for="id_nom" class="block text-sm font-medium text-gray-700 mb-1">Nom de la maison *</label>
+        {{ form.nom }}
+        {% if form.nom.errors %}
+          <p class="text-red-500 text-xs mt-1">{{ form.nom.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="id_quartier" class="block text-sm font-medium text-gray-700 mb-1">Quartier *</label>
+          {{ form.quartier }}
+          {% if form.quartier.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.quartier.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="id_type_maison" class="block text-sm font-medium text-gray-700 mb-1">Type de maison *</label>
+          {{ form.type_maison }}
+        </div>
+      </div>
+
+      <div>
+        <label for="id_adresse" class="block text-sm font-medium text-gray-700 mb-1">Adresse</label>
+        {{ form.adresse }}
+      </div>
+
+      <div>
+        <label for="id_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        {{ form.description }}
+      </div>
+
+      <div>
+        <label for="id_photo" class="block text-sm font-medium text-gray-700 mb-1">Photo</label>
+        {{ form.photo }}
+        {% if form.instance.photo %}
+          <p class="text-xs text-gray-500 mt-1">Photo actuelle : {{ form.instance.photo.name }}</p>
+        {% endif %}
+      </div>
+
+      <div class="flex justify-end space-x-3 pt-4">
+        <a href="{% url 'maisons:liste' %}" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition">
+          Annuler
+        </a>
+        <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition">
+          {% if form.instance.pk %}Enregistrer{% else %}Créer{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

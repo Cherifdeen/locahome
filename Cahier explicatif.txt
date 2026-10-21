@@ -1,0 +1,284 @@
+================================================================================
+                    PROJET LOCAHOME - CAHIER EXPLICATIF
+              Plateforme de gestion locative multi-propriétaires
+================================================================================
+
+Ce document décrit l'ensemble du projet, ses fonctionnalités, les règles métier,
+les spécifications complètes ainsi que les technologies choisies.
+
+================================================================================
+                         1. VISION DU PROJET
+================================================================================
+
+LocaHome est une plateforme web permettant à plusieurs propriétaires de maisons
+de gérer leurs biens locatifs. Les visiteurs peuvent consulter les offres
+disponibles et filtrer selon leurs critères.
+
+================================================================================
+                      2. TYPES D'UTILISATEURS
+================================================================================
+
+A. PROPRIÉTAIRES (utilisateurs authentifiés)
+   - Inscription et connexion à leur compte
+   - Gestion de leurs maisons et chambres
+   - Gestion des locataires et paiements
+   - Génération de reçus PDF
+   - Accès au dashboard personnel
+
+B. VISITEURS (utilisateurs non authentifiés)
+   - Consultation des offres de maisons/chambres disponibles
+   - Filtrage par quartier, type de maison, nombre de chambres
+   - Visualisation des détails des offres
+
+================================================================================
+                   3. FONCTIONNALITÉS PRINCIPALES
+================================================================================
+
+A. GESTION DES MAISONS (nouveau)
+   - Création de maisons avec : quartier, type, description
+   - Chaque maison contient plusieurs chambres
+   - Affichage public des maisons avec chambres libres
+
+B. GESTION DES CHAMBRES
+   - Création, mise à jour, statut (libre/occupée)
+   - Rattachement obligatoire à une maison
+   - Prix de location par chambre
+   - Historique des locataires
+   - Notes et problèmes
+
+C. GESTION DES LOCATAIRES
+   - Fiche complète : nom, contacts, informations personnelles
+   - Historique des paiements
+   - Suivi du statut (en cours / sorti)
+
+D. GESTION DES PAIEMENTS
+   - Paiement des formalités d'entrée (avance + caution eau)
+   - Paiement du premier mois (obligatoire pour valider l'entrée)
+   - Paiements mensuels récurrents
+   - Paiement de sortie avec régularisation
+   - Génération de reçus PDF pour chaque paiement
+   - Enregistrement manuel (paiement hors-ligne)
+
+E. GESTION DU KWH
+   - Enregistrement du compteur KWh à l'entrée
+   - Relevé du compteur à la sortie
+   - Calcul automatique de la consommation et du coût
+   - Intégration dans le calcul de sortie
+
+F. PARAMÈTRES PAR PROPRIÉTAIRE
+   - Nombre de mois d'avance requis (personnalisable)
+   - Montant de la caution eau
+   - Prix du KWh
+   - Textes légaux pour les reçus PDF
+   - Logo et signature pour les PDF
+
+G. PAGE PUBLIQUE (vitrine)
+   - Liste des maisons avec chambres disponibles
+   - Filtres : quartier, type de maison, nombre de chambres
+   - Détails des offres
+
+================================================================================
+                      4. SYSTÈME D'AVANCE (GARANTIE)
+================================================================================
+
+L'avance est une garantie financière obligatoire à l'entrée du locataire.
+
+A. CALCUL DE L'AVANCE
+   - Montant = prix_chambre × nombre_mois_avance
+   - Le nombre de mois est défini par chaque propriétaire
+
+B. FONCTIONNEMENT
+   - L'avance reste intacte tant que le locataire paie son loyer
+   - En cas d'impayé mensuel → soustraction automatique de l'avance
+   - Alerte quand il ne reste qu'1 mois d'avance
+   - Le propriétaire prévient alors le locataire
+
+C. RESTITUTION À LA SORTIE
+   - Calcul du remboursement final :
+     * Avance restante (après déduction des éventuels impayés)
+     * +/- Régularisation KWh (dette ou remboursement électricité)
+   - Génération d'une fiche PDF récapitulative
+
+================================================================================
+                    5. PROCESSUS D'ENTRÉE D'UN LOCATAIRE
+================================================================================
+
+Pour qu'une chambre passe de "libre" à "occupée", le processus est en 2 étapes :
+
+ÉTAPE 1 : FORMULAIRE DES FORMALITÉS
+   - Confirmation du paiement de l'avance (X mois × prix chambre)
+   - Confirmation du paiement de la caution eau
+   - Enregistrement du KWh d'entrée
+
+ÉTAPE 2 : PAIEMENT DU PREMIER MOIS (redirection automatique)
+   - Paiement obligatoire du premier mois de loyer
+   - Génération du reçu d'entrée
+
+RÉSULTAT : La chambre est maintenant "occupée"
+
+================================================================================
+                         6. TYPES DE PAIEMENTS
+================================================================================
+
+A. PAIEMENT D'ENTRÉE (formalités)
+   - Avance (X mois)
+   - Caution eau
+   - Informations du locataire
+   - Nombre de KWh de départ
+   - Nombre de clés remises
+   - Texte légal personnalisé
+
+B. PAIEMENT DU PREMIER MOIS
+   - Montant du loyer mensuel
+   - Obligatoire pour valider l'entrée
+   - Reçu PDF généré
+
+C. PAIEMENT MENSUEL
+   - Montant payé
+   - Montant restant (si paiement partiel)
+   - Notes ou remarques
+   - Mois concerné
+
+D. PAIEMENT DE SORTIE
+   - KWh final (relevé du compteur)
+   - Calcul automatique de la consommation
+   - Régularisation : dette ou remboursement KWh
+   - Avance restante à restituer
+   - Nombre de clés rendues
+   - Observations finales
+   - Fiche PDF récapitulative complète
+
+================================================================================
+                         7. GESTION DU KWH
+================================================================================
+
+A. À L'ENTRÉE
+   - Enregistrer le numéro du compteur KWh
+
+B. À LA SORTIE
+   - Enregistrer le KWh final
+   - Calcul : consommation = kwh_sortie - kwh_entree
+   - Calcul : montant_conso = consommation × prix_kwh
+
+C. RÉGULARISATION
+   - Si montant_conso > 0 → le locataire doit ce montant
+   - Ce montant est déduit de l'avance à rembourser
+
+================================================================================
+                    8. GESTION DES RETARDS DE PAIEMENT
+================================================================================
+
+A. RÈGLE DE CALCUL
+   - Base : date d'entrée du locataire
+   - Le paiement du mois M doit être effectué avant : date_entree + M mois
+   - Retard si : date_actuelle > date_limite ET aucun paiement enregistré
+
+B. EN CAS DE RETARD
+   - Soustraction automatique dans l'avance
+   - Mise à jour du solde de l'avance
+   - Affichage en rouge sur le dashboard
+
+C. ALERTE AVANCE FAIBLE
+   - Quand il ne reste qu'1 mois d'avance → alerte
+   - Le propriétaire doit prévenir le locataire
+
+================================================================================
+                      9. DASHBOARD PROPRIÉTAIRE
+================================================================================
+
+Indicateurs affichés :
+- Chambres occupées / libres (par maison)
+- Paiements du mois en cours
+- Paiements en retard (en rouge)
+- Alertes avance faible
+- Dettes / remboursements à traiter
+- Problèmes signalés non résolus
+- Total des revenus
+
+================================================================================
+                      10. TECHNOLOGIES UTILISÉES
+================================================================================
+
+- HTML : structure des pages web
+- Tailwind CSS : stylisation rapide, moderne et responsive
+- Django : framework backend (modèles, vues, formulaires, sécurité)
+- SQLite (développement) : base de données légère
+- PostgreSQL (production) : base robuste pour les données financières
+- WeasyPrint : génération des fichiers PDF
+- jQuery/Alpine.js : interactions frontend dynamiques
+
+================================================================================
+              10.1 CONFIGURATION DE L'ENVIRONNEMENT
+================================================================================
+
+En développement, l'application utilise SQLite et DEBUG est activé par défaut.
+Pour la production, configurer les variables d'environnement suivantes :
+
+- DJANGO_DEBUG=False
+- DJANGO_SECRET_KEY : clé secrète longue, aléatoire et conservée hors du code
+- DJANGO_ALLOWED_HOSTS : noms d'hôtes autorisés, séparés par des virgules
+- DJANGO_CSRF_TRUSTED_ORIGINS : origines HTTPS de confiance, séparées par des virgules
+- DJANGO_DB_ENGINE=postgresql
+- POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_HOST
+- POSTGRES_PORT (facultatif, 5432 par défaut)
+- DJANGO_SECURE_SSL_REDIRECT=True si HTTPS est correctement configuré
+- DJANGO_SECURE_HSTS_SECONDS : durée HSTS en secondes, à activer après validation HTTPS
+- DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS=True uniquement si tous les sous-domaines utilisent HTTPS
+- DJANGO_SECURE_HSTS_PRELOAD=True uniquement si le domaine satisfait les critères de préchargement HSTS
+
+La clé secrète et les hôtes autorisés sont obligatoires lorsque DEBUG est désactivé.
+PostgreSQL est également obligatoire en production. Les cookies de session et CSRF
+sont alors transmis uniquement sur HTTPS. Générer une clé secrète aléatoire d'au
+moins 50 caractères et activer SSL/HSTS seulement après la configuration HTTPS.
+
+================================================================================
+                         11. PAGES DE L'APPLICATION
+================================================================================
+
+A. PAGES PUBLIQUES (visiteurs)
+   1. Accueil - Liste des maisons avec chambres disponibles
+   2. Détail maison - Chambres disponibles, infos, quartier
+   3. Filtres - Par quartier, type, nombre de chambres
+
+B. AUTHENTIFICATION
+   4. Inscription propriétaire
+   5. Connexion
+   6. Déconnexion
+
+C. ESPACE PROPRIÉTAIRE - MAISONS
+   7. Liste de mes maisons
+   8. Ajouter une maison
+   9. Modifier une maison
+   10. Détail d'une maison
+
+D. ESPACE PROPRIÉTAIRE - CHAMBRES
+   11. Liste des chambres (par maison)
+   12. Ajouter une chambre
+   13. Modifier une chambre
+   14. Détail d'une chambre (locataire actuel, historique, notes)
+
+E. ESPACE PROPRIÉTAIRE - LOCATAIRES
+   15. Liste des locataires
+   16. Formulaire formalités d'entrée
+   17. Formulaire premier mois
+   18. Détail locataire (infos, paiements, KWh)
+   19. Modifier locataire
+   20. Processus de sortie
+
+F. ESPACE PROPRIÉTAIRE - PAIEMENTS
+   21. Liste des paiements
+   22. Enregistrer un paiement mensuel
+   23. Paiement de sortie
+
+G. ESPACE PROPRIÉTAIRE - PDF
+   24. Reçu d'entrée (PDF)
+   25. Reçu mensuel (PDF)
+   26. Reçu/Fiche de sortie (PDF)
+
+H. ESPACE PROPRIÉTAIRE - DASHBOARD & PARAMÈTRES
+   27. Dashboard principal
+   28. Page paramètres (avance, caution eau, prix KWh, textes légaux, logo)
+
+================================================================================
+                              FIN DU DOCUMENT
+================================================================================

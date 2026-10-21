@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>{% block title %}LocaHome{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Tailwind sera branché plus tard ; pour l'instant un style minimal -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" />
+  </head>
+  <body class="bg-gray-100 min-h-screen">
+    <div class="flex min-h-screen">
+      <!-- Sidebar -->
+      {% if user.is_authenticated %}
+        <aside class="w-64 bg-white shadow-lg hidden md:flex md:flex-col">
+          <div class="px-6 py-4 border-b">
+            <h1 class="text-xl font-bold text-indigo-700">LocaHome</h1>
+            <p class="text-xs text-gray-500 mt-1">Gestion des chambres & locataires</p>
+          </div>
+          <nav class="flex-1 px-3 py-4 space-y-1">
+            <a href="{% url 'dashboard' %}" class="flex items-center px-3 py-2 rounded text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+              <span class="mr-2">🏠</span> Dashboard
+            </a>
+            <!-- Liens à brancher sur les futures vues -->
+            <span class="block text-xs font-semibold text-gray-400 uppercase mt-4 mb-1 px-3">Gestion</span>
+            <a href="{% url 'maisons:liste' %}" class="flex items-center px-3 py-2 rounded text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+              <span class="mr-2">🏠</span> Maisons
+            </a>
+            <a href="{% url 'chambres:liste' %}" class="flex items-center px-3 py-2 rounded text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+              <span class="mr-2">🛏️</span> Chambres
+            </a>
+            <a href="{% url 'locataires:liste' %}" class="flex items-center px-3 py-2 rounded text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+              <span class="mr-2">👤</span> Locataires
+            </a>
+            <a href="{% url 'paiements:liste' %}" class="flex items-center px-3 py-2 rounded text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+              <span class="mr-2">💰</span> Paiements
+            </a>
+            <a href="{% url 'parametres:modifier' %}" class="flex items-center px-3 py-2 rounded text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700">
+              <span class="mr-2">⚙️</span> Paramètres
+            </a>
+          </nav>
+          <div class="px-4 py-3 border-t text-xs text-gray-500">
+            Connecté en tant que <span class="font-semibold text-gray-700">{{ user.username }}</span>
+          </div>
+        </aside>
+      {% endif %}
+
+      <!-- Contenu principal -->
+      <div class="flex-1 flex flex-col">
+        <!-- Topbar -->
+        <header class="bg-white shadow mb-4">
+          <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2 md:hidden">
+              <span class="text-lg font-bold text-indigo-700">LocaHome</span>
+            </div>
+            <div class="space-x-4 text-sm">
+              {% if user.is_authenticated %}
+                <span class="hidden sm:inline text-gray-600">Bonjour, <strong>{{ user.username }}</strong></span>
+                <form method="post" action="{% url 'logout' %}" class="inline">
+                  {% csrf_token %}
+                  <button type="submit" class="text-red-600 hover:text-red-800 font-medium">Déconnexion</button>
+                </form>
+              {% else %}
+                <a href="{% url 'login' %}" class="text-indigo-600 hover:text-indigo-800 font-medium">Connexion</a>
+              {% endif %}
+            </div>
+          </div>
+        </header>
+
+        <main class="max-w-6xl mx-auto px-4 pb-8 w-full">
+          {% if messages %}
+            <div class="mb-4">
+              {% for message in messages %}
+                <div class="p-3 rounded mb-2 {% if message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}">
+                  {{ message }}
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% block content %}{% endblock %}
+        </main>
+      </div>
+    </div>
+  </body>
+</html>
+
+

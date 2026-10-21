@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - LocaHome{% endblock %}
+
+{% block content %}
+  <div class="mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">Dashboard</h1>
+    <p class="text-gray-600 text-sm">
+      Bienvenue, {{ user.proprietaire.nom_complet }}. Voici un aperçu de votre activité.
+    </p>
+  </div>
+
+  <!-- Indicateurs principaux -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <!-- Maisons -->
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500">Maisons</p>
+          <p class="text-2xl font-bold text-gray-900">{{ stats.nombre_maisons }}</p>
+        </div>
+        <div class="text-3xl">🏠</div>
+      </div>
+    </div>
+
+    <!-- Chambres occupées -->
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500">Occupation</p>
+          <p class="text-2xl font-bold text-gray-900">{{ stats.chambres_occupees }}/{{ stats.chambres_total }}</p>
+          <p class="text-xs text-gray-400">{{ stats.taux_occupation }}% occupé</p>
+        </div>
+        <div class="text-3xl">🛏️</div>
+      </div>
+    </div>
+
+    <!-- Revenus du mois -->
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500">Revenus {{ mois_courant }}</p>
+          <p class="text-2xl font-bold text-gray-900">{{ stats.revenus_mois_courant|floatformat:0 }} <span class="text-sm font-normal">FCFA</span></p>
+          {% if stats.evolution_revenus > 0 %}
+            <p class="text-xs text-green-600">↑ {{ stats.evolution_revenus }}% vs mois précédent</p>
+          {% elif stats.evolution_revenus < 0 %}
+            <p class="text-xs text-red-600">↓ {{ stats.evolution_revenus }}% vs mois précédent</p>
+          {% else %}
+            <p class="text-xs text-gray-400">= stable</p>
+          {% endif %}
+        </div>
+        <div class="text-3xl">💰</div>
+      </div>
+    </div>
+
+    <!-- Chambres libres -->
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-500">Chambres libres</p>
+          <p class="text-2xl font-bold {% if stats.chambres_libres > 0 %}text-green-600{% else %}text-gray-900{% endif %}">{{ stats.chambres_libres }}</p>
+          <p class="text-xs text-gray-400">disponibles</p>
+        </div>
+        <div class="text-3xl">✅</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Graphique occupation (visuel simplifié) -->
+  <div class="bg-white rounded-lg shadow p-4 mb-6">
+    <h2 class="text-lg font-semibold text-gray-800 mb-3">Taux d'occupation</h2>
+    <div class="flex items-center space-x-4">
+      <div class="flex-1 bg-gray-200 rounded-full h-4 overflow-hidden">
+        <div class="bg-indigo-600 h-4 rounded-full transition-all" style="width: {{ stats.taux_occupation }}%"></div>
+      </div>
+      <span class="text-sm font-medium text-gray-700">{{ stats.taux_occupation }}%</span>
+    </div>
+    <div class="flex justify-between mt-2 text-xs text-gray-500">
+      <span>🟢 {{ stats.chambres_occupees }} occupée{{ stats.chambres_occupees|pluralize:"s" }}</span>
+      <span>⚪ {{ stats.chambres_libres }} libre{{ stats.chambres_libres|pluralize:"s" }}</span>
+    </div>
+  </div>
+
+  <!-- Alertes et problèmes -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Paiements en retard -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-4 py-3 border-b flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+          <span class="text-red-500 mr-2">⏰</span>
+          Paiements en retard
+        </h2>
+        {% if stats.nb_locataires_en_retard > 0 %}
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+            {{ stats.nb_locataires_en_retard }}
+          </span>
+        {% endif %}
+      </div>
+      <div class="p-4">
+        {% if stats.locataires_en_retard %}
+          <div class="space-y-3 max-h-64 overflow-y-auto">
+            {% for item in stats.locataires_en_retard %}
+              <div class="flex items-center justify-between p-2 bg-red-50 rounded">
+                <div>
+                  <p class="font-medium text-gray-900">{{ item.locataire.nom_complet }}</p>
+                  <p class="text-xs text-gray-500">{{ item.locataire.chambre }} - {{ item.locataire.chambre.maison.nom }}</p>
+                  <p class="text-xs text-red-600 font-medium">{{ item.nb_mois_impaye }} mois impayé{{ item.nb_mois_impaye|pluralize:"s" }}</p>
+                </div>
+                <a href="{% url 'locataires:detail' item.locataire.pk %}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                  Voir →
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-green-600 text-sm flex items-center">
+            <span class="mr-2">✅</span>
+            Aucun paiement en retard
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Alertes avance faible -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-4 py-3 border-b flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+          <span class="text-yellow-500 mr-2">⚠️</span>
+          Alertes avance faible
+        </h2>
+        {% if stats.nb_alertes_avance > 0 %}
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+            {{ stats.nb_alertes_avance }}
+          </span>
+        {% endif %}
+      </div>
+      <div class="p-4">
+        {% if stats.alertes_avance %}
+          <div class="space-y-3 max-h-64 overflow-y-auto">
+            {% for alerte in stats.alertes_avance %}
+              <div class="flex items-center justify-between p-2 {% if alerte.niveau == 'critique' %}bg-red-50{% elif alerte.niveau == 'urgent' %}bg-orange-50{% else %}bg-yellow-50{% endif %} rounded">
+                <div>
+                  <p class="font-medium text-gray-900">{{ alerte.locataire.nom_complet }}</p>
+                  <p class="text-xs text-gray-500">{{ alerte.locataire.chambre }}</p>
+                  <div class="flex items-center space-x-2 mt-1">
+                    {% if alerte.niveau == 'critique' %}
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-800">Critique</span>
+                    {% elif alerte.niveau == 'urgent' %}
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-orange-100 text-orange-800">Urgent</span>
+                    {% else %}
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-yellow-100 text-yellow-800">Attention</span>
+                    {% endif %}
+                    <span class="text-xs text-gray-600">{{ alerte.mois_restants }} mois restant{{ alerte.mois_restants|pluralize:"s" }}</span>
+                  </div>
+                </div>
+                <a href="{% url 'locataires:detail' alerte.locataire.pk %}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                  Voir →
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-green-600 text-sm flex items-center">
+            <span class="mr-2">✅</span>
+            Toutes les avances sont suffisantes
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Problèmes non résolus -->
+  <div class="bg-white rounded-lg shadow mb-6">
+    <div class="px-4 py-3 border-b flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+        <span class="text-orange-500 mr-2">🔧</span>
+        Problèmes non résolus
+      </h2>
+      {% if stats.nb_problemes_ouverts > 0 %}
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-800">
+          {{ stats.nb_problemes_ouverts }}
+        </span>
+      {% endif %}
+    </div>
+    <div class="p-4">
+      {% if stats.problemes_ouverts %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {% for probleme in stats.problemes_ouverts %}
+            <div class="p-3 bg-orange-50 rounded border border-orange-100">
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="font-medium text-gray-900">{{ probleme.titre }}</p>
+                  <p class="text-xs text-gray-500">{{ probleme.chambre }} - {{ probleme.chambre.maison.nom }}</p>
+                  <p class="text-xs text-gray-400 mt-1">{{ probleme.cree_le|date:"d/m/Y" }}</p>
+                </div>
+                <a href="{% url 'chambres:detail' probleme.chambre.pk %}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                  Voir →
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-green-600 text-sm flex items-center">
+          <span class="mr-2">✅</span>
+          Aucun problème en cours
+        </p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Actions rapides -->
+  <div class="bg-white rounded-lg shadow p-4">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Actions rapides</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <a href="{% url 'maisons:ajouter' %}" class="flex items-center p-3 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition">
+        <span class="text-2xl mr-3">🏠</span>
+        <div>
+          <p class="font-medium text-indigo-900">Ajouter une maison</p>
+          <p class="text-xs text-indigo-600">Nouvelle propriété</p>
+        </div>
+      </a>
+      <a href="{% url 'paiements:mensuel' %}" class="flex items-center p-3 bg-green-50 rounded-lg hover:bg-green-100 transition">
+        <span class="text-2xl mr-3">💰</span>
+        <div>
+          <p class="font-medium text-green-900">Enregistrer paiement</p>
+          <p class="text-xs text-green-600">Nouveau paiement</p>
+        </div>
+      </a>
+      <a href="{% url 'locataires:liste' %}?filtre=retard" class="flex items-center p-3 bg-red-50 rounded-lg hover:bg-red-100 transition">
+        <span class="text-2xl mr-3">⏰</span>
+        <div>
+          <p class="font-medium text-red-900">Voir les retards</p>
+          <p class="text-xs text-red-600">{{ stats.nb_locataires_en_retard }} en retard</p>
+        </div>
+      </a>
+      <a href="{% url 'chambres:liste' %}?statut=LIBRE" class="flex items-center p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition">
+        <span class="text-2xl mr-3">🛏️</span>
+        <div>
+          <p class="font-medium text-blue-900">Chambres libres</p>
+          <p class="text-xs text-blue-600">{{ stats.chambres_libres }} disponible{{ stats.chambres_libres|pluralize:"s" }}</p>
+        </div>
+      </a>
+    </div>
+  </div>
+{% endblock %}

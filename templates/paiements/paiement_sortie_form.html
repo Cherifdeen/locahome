@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Sortie de locataire - LocaHome{% endblock %}
+
+{% block content %}
+  <div class="mb-4">
+    <a href="{% url 'paiements:liste' %}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; Retour à la liste des paiements</a>
+  </div>
+
+  <div class="bg-white shadow rounded p-6 max-w-3xl">
+    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Enregistrer une sortie de locataire</h1>
+
+    <form method="post" class="space-y-6" id="sortie-form">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="bg-red-100 text-red-800 p-3 rounded">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <!-- Sélection du locataire -->
+      <div>
+        <label for="{{ form.locataire.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.locataire.label }} <span class="text-red-600">*</span>
+        </label>
+        {{ form.locataire }}
+        {% if form.locataire.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.locataire.errors }}</p>
+        {% endif %}
+      </div>
+
+      {% if locataire %}
+        <!-- Informations du locataire sélectionné -->
+        <div class="bg-gray-50 border border-gray-200 rounded p-4 space-y-3">
+          <h3 class="font-medium text-gray-800">Informations du locataire</h3>
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span class="text-gray-500">Chambre:</span>
+              <span class="font-medium">{{ locataire.chambre.numero }}</span>
+            </div>
+            <div>
+              <span class="text-gray-500">Date d'entrée:</span>
+              <span class="font-medium">{{ locataire.date_entree }}</span>
+            </div>
+            <div>
+              <span class="text-gray-500">Avance restante:</span>
+              <span class="font-medium text-green-600">{{ avance_loyer|floatformat:0 }} FCFA</span>
+            </div>
+            <div>
+              <span class="text-gray-500">Type de décompteur:</span>
+              <span class="font-medium">{% if is_carte %}À carte{% else %}Classique{% endif %}</span>
+            </div>
+            <div>
+              <span class="text-gray-500">Caution eau:</span>
+              <span class="font-medium">{{ caution_eau|floatformat:0 }} FCFA</span>
+            </div>
+            <div>
+              <span class="text-gray-500">Caution électricité:</span>
+              <span class="font-medium">{{ caution_electricite|floatformat:0 }} FCFA</span>
+            </div>
+            {% if is_carte %}
+            <div>
+              <span class="text-gray-500">KWh à l'entrée:</span>
+              <span class="font-medium">{{ kwh_entree }} KWh</span>
+            </div>
+            {% endif %}
+          </div>
+
+          {% if mois_impayes %}
+          <div class="mt-3 bg-yellow-50 border border-yellow-200 rounded p-3">
+            <p class="text-sm text-yellow-800 font-medium">⚠️ Mois impayés détectés:</p>
+            <p class="text-sm text-yellow-700">
+              {{ mois_impayes|length }} mois impayé(s) - Total: {{ montant_impayes|floatformat:0 }} FCFA
+            </p>
+            <p class="text-xs text-yellow-600 mt-1">Ce montant sera défalqué de l'avance.</p>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Date de sortie -->
+        <div>
+          <label for="{{ form.date_sortie.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.date_sortie.label }} <span class="text-red-600">*</span>
+          </label>
+          {{ form.date_sortie }}
+          {% if form.date_sortie.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.date_sortie.errors }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Champs conditionnels selon le type de décompteur -->
+        {% if is_carte %}
+          <!-- Décompteur à carte: KWh + Prix -->
+          <div class="bg-blue-50 border border-blue-200 rounded p-4">
+            <h3 class="font-medium text-blue-800 mb-3">🔌 Électricité (Décompteur à carte)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="{{ form.kwh_sortie.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                  {{ form.kwh_sortie.label }} <span class="text-red-600">*</span>
+                </label>
+                {{ form.kwh_sortie }}
+                {% if form.kwh_sortie.errors %}
+                  <p class="mt-1 text-sm text-red-600">{{ form.kwh_sortie.errors }}</p>
+                {% endif %}
+                <p class="mt-1 text-xs text-gray-500">Index actuel: {{ kwh_entree }} KWh</p>
+              </div>
+              <div>
+                <label for="{{ form.prix_kwh.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                  {{ form.prix_kwh.label }} <span class="text-red-600">*</span>
+                </label>
+                {{ form.prix_kwh }}
+                {% if form.prix_kwh.errors %}
+                  <p class="mt-1 text-sm text-red-600">{{ form.prix_kwh.errors }}</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <!-- Décompteur classique: Montant facture -->
+          <div class="bg-blue-50 border border-blue-200 rounded p-4">
+            <h3 class="font-medium text-blue-800 mb-3">🔌 Électricité (Décompteur classique)</h3>
+            <div>
+              <label for="{{ form.montant_facture_electricite.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                {{ form.montant_facture_electricite.label }} <span class="text-red-600">*</span>
+              </label>
+              {{ form.montant_facture_electricite }}
+              {% if form.montant_facture_electricite.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.montant_facture_electricite.errors }}</p>
+              {% endif %}
+              <p class="mt-1 text-xs text-gray-500">{{ form.montant_facture_electricite.help_text }}</p>
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Facture eau (toujours affichée) -->
+        <div class="bg-cyan-50 border border-cyan-200 rounded p-4">
+          <h3 class="font-medium text-cyan-800 mb-3">💧 Eau</h3>
+          <div>
+            <label for="{{ form.montant_facture_eau.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form.montant_facture_eau.label }} <span class="text-red-600">*</span>
+            </label>
+            {{ form.montant_facture_eau }}
+            {% if form.montant_facture_eau.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.montant_facture_eau.errors }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-gray-500">{{ form.montant_facture_eau.help_text }}</p>
+          </div>
+        </div>
+
+        <!-- Dommages / Problèmes -->
+        <div class="bg-orange-50 border border-orange-200 rounded p-4">
+          <h3 class="font-medium text-orange-800 mb-3">🔧 Autres problèmes liés à la chambre</h3>
+          <div class="space-y-4">
+            <div>
+              <label for="{{ form.description_dommages.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                {{ form.description_dommages.label }}
+              </label>
+              {{ form.description_dommages }}
+              {% if form.description_dommages.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.description_dommages.errors }}</p>
+              {% endif %}
+              <p class="mt-1 text-xs text-gray-500">{{ form.description_dommages.help_text }}</p>
+            </div>
+            <div>
+              <label for="{{ form.montant_dommages.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                {{ form.montant_dommages.label }}
+              </label>
+              {{ form.montant_dommages }}
+              {% if form.montant_dommages.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.montant_dommages.errors }}</p>
+              {% endif %}
+              <p class="mt-1 text-xs text-gray-500">{{ form.montant_dommages.help_text }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info clause -->
+        <div class="bg-amber-50 border border-amber-200 rounded p-4">
+          <p class="text-sm text-amber-800">
+            <strong>📋 Rappel des clauses:</strong> Le locataire ne peut quitter qu'à la fin du mois.
+            S'il quitte en cours de mois, il paie quand même les factures complètes du mois.
+          </p>
+        </div>
+      {% else %}
+        <div class="bg-gray-100 border border-gray-300 rounded p-4 text-center text-gray-600">
+          <p>Veuillez d'abord sélectionner un locataire pour voir les options de sortie.</p>
+        </div>
+      {% endif %}
+
+      <div class="flex items-center justify-end space-x-3 pt-4">
+        <a href="{% url 'paiements:liste' %}" class="px-4 py-2 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50">
+          Annuler
+        </a>
+        {% if locataire %}
+        <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-medium">
+          Calculer le solde de sortie
+        </button>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  {% if not locataire %}
+  <script>
+    document.getElementById('id_locataire').addEventListener('change', function() {
+      if (this.value) {
+        window.location.href = '{% url "paiements:sortie" %}?locataire=' + this.value;
+      }
+    });
+  </script>
+  {% endif %}
+{% endblock %}

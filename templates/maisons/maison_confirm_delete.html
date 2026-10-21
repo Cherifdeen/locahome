@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Supprimer {{ maison.nom }} - LocaHome{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+  <div class="bg-white rounded-lg shadow p-6">
+    <div class="text-center mb-6">
+      <span class="text-5xl">⚠️</span>
+      <h1 class="text-xl font-bold text-gray-800 mt-4">Supprimer cette maison ?</h1>
+      <p class="text-gray-600 mt-2">
+        Vous êtes sur le point de supprimer <strong>{{ maison.nom }}</strong>.
+      </p>
+      {% if maison.nombre_chambres_total > 0 %}
+        <p class="text-red-600 mt-2 font-medium">
+          ⚠️ Cette maison contient {{ maison.nombre_chambres_total }} chambre(s).
+          Toutes les chambres et données associées seront supprimées.
+        </p>
+      {% endif %}
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="flex justify-center space-x-4">
+        <a href="{% url 'maisons:detail' maison.pk %}" class="px-6 py-2 border border-gray-300 rounded hover:bg-gray-50 transition">
+          Annuler
+        </a>
+        <button type="submit" class="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+          Oui, supprimer
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

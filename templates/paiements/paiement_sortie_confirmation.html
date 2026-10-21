@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+
+{% block title %}Confirmation de sortie - {{ locataire.nom_complet }} - LocaHome{% endblock %}
+
+{% block content %}
+  <div class="mb-4">
+    <a href="{% url 'paiements:sortie' %}?locataire={{ locataire.pk }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; Modifier les informations</a>
+  </div>
+
+  <div class="bg-white shadow rounded p-6 max-w-4xl">
+    <h1 class="text-2xl font-semibold text-gray-800 mb-2">Confirmation de sortie</h1>
+    <p class="text-gray-600 mb-6">Vérifiez les informations ci-dessous avant de confirmer la sortie.</p>
+
+    <!-- Informations locataire -->
+    <div class="bg-gray-50 border border-gray-200 rounded p-4 mb-6">
+      <h2 class="font-semibold text-gray-800 mb-3">👤 Locataire</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        <div>
+          <span class="text-gray-500">Nom:</span>
+          <span class="font-medium block">{{ locataire.nom_complet }}</span>
+        </div>
+        <div>
+          <span class="text-gray-500">Chambre:</span>
+          <span class="font-medium block">{{ locataire.chambre.numero }}</span>
+        </div>
+        <div>
+          <span class="text-gray-500">Date d'entrée:</span>
+          <span class="font-medium block">{{ locataire.date_entree }}</span>
+        </div>
+        <div>
+          <span class="text-gray-500">Date de sortie:</span>
+          <span class="font-medium block">{{ date_sortie }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Détails Avance -->
+    <div class="bg-green-50 border border-green-200 rounded p-4 mb-6">
+      <h2 class="font-semibold text-green-800 mb-3">💰 Avance de loyer</h2>
+      <table class="w-full text-sm">
+        <tbody>
+          <tr class="border-b border-green-200">
+            <td class="py-2 text-gray-700">Avance initiale</td>
+            <td class="py-2 text-right font-medium">{{ resultat.avance.montant_initial|floatformat:0 }} FCFA</td>
+          </tr>
+          {% if resultat.avance.defalcation_loyers_impayes > 0 %}
+          <tr class="border-b border-green-200">
+            <td class="py-2 text-gray-700">- Défalcation loyers impayés ({{ mois_impayes|length }} mois)</td>
+            <td class="py-2 text-right font-medium text-orange-600">- {{ resultat.avance.defalcation_loyers_impayes|floatformat:0 }} FCFA</td>
+          </tr>
+          {% endif %}
+          {% if resultat.avance.defalcation_electricite > 0 %}
+          <tr class="border-b border-green-200">
+            <td class="py-2 text-gray-700">- Défalcation électricité</td>
+            <td class="py-2 text-right font-medium text-orange-600">- {{ resultat.avance.defalcation_electricite|floatformat:0 }} FCFA</td>
+          </tr>
+          {% endif %}
+          {% if resultat.avance.defalcation_eau > 0 %}
+          <tr class="border-b border-green-200">
+            <td class="py-2 text-gray-700">- Défalcation eau</td>
+            <td class="py-2 text-right font-medium text-orange-600">- {{ resultat.avance.defalcation_eau|floatformat:0 }} FCFA</td>
+          </tr>
+          {% endif %}
+          {% if resultat.avance.defalcation_dommages > 0 %}
+          <tr class="border-b border-green-200">
+            <td class="py-2 text-gray-700">- Défalcation dommages</td>
+            <td class="py-2 text-right font-medium text-orange-600">- {{ resultat.avance.defalcation_dommages|floatformat:0 }} FCFA</td>
+          </tr>
+          {% endif %}
+          <tr class="font-semibold bg-green-100">
+            <td class="py-2 text-green-800">= Avance restante (dû au locataire)</td>
+            <td class="py-2 text-right text-red-600">{{ resultat.avance.montant_final|floatformat:0 }} FCFA</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Détails Électricité -->
+    <div class="bg-blue-50 border border-blue-200 rounded p-4 mb-6">
+      <h2 class="font-semibold text-blue-800 mb-3">🔌 Électricité</h2>
+      <table class="w-full text-sm">
+        <tbody>
+          {% if resultat.electricite.type_decompteur == "CARTE" %}
+          <tr class="border-b border-blue-200">
+            <td class="py-2 text-gray-700">KWh à l'entrée</td>
+            <td class="py-2 text-right font-medium">{{ resultat.electricite.kwh_entree|floatformat:2 }} KWh</td>
+          </tr>
+          <tr class="border-b border-blue-200">
+            <td class="py-2 text-gray-700">KWh à la sortie</td>
+            <td class="py-2 text-right font-medium">{{ resultat.electricite.kwh_sortie|floatformat:2 }} KWh</td>
+          </tr>
+          <tr class="border-b border-blue-200">
+            <td class="py-2 text-gray-700 font-medium">Différence (sortie - entrée)</td>
+            <td class="py-2 text-right font-medium">{{ resultat.electricite.difference_kwh|floatformat:2 }} KWh</td>
+          </tr>
+          <tr class="border-b border-blue-200">
+            <td class="py-2 text-gray-700">Prix du KWh</td>
+            <td class="py-2 text-right font-medium">{{ resultat.electricite.prix_kwh|floatformat:0 }} FCFA</td>
+          </tr>
+          <tr class="border-b border-blue-200 bg-blue-100">
+            <td class="py-2 text-gray-700 font-medium">Montant consommation (différence × prix)</td>
+            <td class="py-2 text-right font-bold">{{ resultat.electricite.montant_difference|floatformat:0 }} FCFA</td>
+          </tr>
+          {% else %}
+          <tr class="border-b border-blue-200">
+            <td class="py-2 text-gray-700">Montant facture électricité</td>
+            <td class="py-2 text-right font-medium">{{ resultat.electricite.montant_a_payer|floatformat:0 }} FCFA</td>
+          </tr>
+          {% endif %}
+          <tr class="border-b border-blue-200">
+            <td class="py-2 text-gray-700">Caution électricité payée</td>
+            <td class="py-2 text-right font-medium">{{ resultat.electricite.caution_initiale|floatformat:0 }} FCFA</td>
+          </tr>
+          {% if resultat.electricite.defalque_sur_avance > 0 %}
+          <tr class="border-b border-blue-200">
+            <td class="py-2 text-gray-700">Défalqué sur avance</td>
+            <td class="py-2 text-right font-medium text-orange-600">{{ resultat.electricite.defalque_sur_avance|floatformat:0 }} FCFA</td>
+          </tr>
+          {% endif %}
+          <tr class="font-semibold bg-blue-100">
+            {% if resultat.electricite.du_au_locataire > 0 %}
+            <td class="py-2 text-blue-800">→ Dû au locataire</td>
+            <td class="py-2 text-right text-red-600">{{ resultat.electricite.du_au_locataire|floatformat:0 }} FCFA</td>
+            {% elif resultat.electricite.a_payer_par_locataire > 0 %}
+            <td class="py-2 text-blue-800">→ À payer par le locataire</td>
+            <td class="py-2 text-right text-green-600">{{ resultat.electricite.a_payer_par_locataire|floatformat:0 }} FCFA</td>
+            {% else %}
+            <td class="py-2 text-blue-800">→ Solde</td>
+            <td class="py-2 text-right text-gray-600">0 FCFA (quitte)</td>
+            {% endif %}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Détails Dommages -->
+    {% if resultat.dommages.montant > 0 %}
+    <div class="bg-orange-50 border border-orange-200 rounded p-4 mb-6">
+      <h2 class="font-semibold text-orange-800 mb-3">🔧 Dommages</h2>
+      <table class="w-full text-sm">
+        <tbody>
+          {% if resultat.dommages.description %}
+          <tr class="border-b border-orange-200">
+            <td class="py-2 text-gray-700" colspan="2">
+              <strong>Description:</strong> {{ resultat.dommages.description }}
+            </td>
+          </tr>
+          {% endif %}
+          <tr class="border-b border-orange-200">
+            <td class="py-2 text-gray-700">Coût des dommages</td>
+            <td class="py-2 text-right font-medium">{{ resultat.dommages.montant|floatformat:0 }} FCFA</td>
+          </tr>
+          {% if resultat.dommages.defalque_sur_avance > 0 %}
+          <tr class="border-b border-orange-200">
+            <td class="py-2 text-gray-700">Défalqué sur avance</td>
+            <td class="py-2 text-right font-medium text-orange-600">{{ resultat.dommages.defalque_sur_avance|floatformat:0 }} FCFA</td>
+          </tr>
+          {% endif %}
+          <tr class="font-semibold bg-orange-100">
+            {% if resultat.dommages.a_payer_par_locataire > 0 %}
+            <td class="py-2 text-orange-800">→ Reste à payer par le locataire</td>
+            <td class="py-2 text-right text-green-600">{{ resultat.dommages.a_payer_par_locataire|floatformat:0 }} FCFA</td>
+            {% else %}
+            <td class="py-2 text-orange-800">→ Entièrement couvert par l'avance</td>
+            <td class="py-2 text-right text-gray-600">0 FCFA</td>
+            {% endif %}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <!-- Détails Eau -->
+    <div class="bg-cyan-50 border border-cyan-200 rounded p-4 mb-6">
+      <h2 class="font-semibold text-cyan-800 mb-3">💧 Eau</h2>
+      <table class="w-full text-sm">
+        <tbody>
+          <tr class="border-b border-cyan-200">
+            <td class="py-2 text-gray-700">Caution eau payée</td>
+            <td class="py-2 text-right font-medium">{{ resultat.eau.caution_initiale|floatformat:0 }} FCFA</td>
+          </tr>
+          <tr class="border-b border-cyan-200">
+            <td class="py-2 text-gray-700">Montant facture eau</td>
+            <td class="py-2 text-right font-medium">- {{ resultat.eau.montant_facture|floatformat:0 }} FCFA</td>
+          </tr>
+          <tr class="border-b border-cyan-200 bg-cyan-100">
+            <td class="py-2 text-gray-700 font-medium">Solde (Caution - Facture)</td>
+            <td class="py-2 text-right font-bold {% if resultat.eau.solde >= 0 %}text-red-600{% else %}text-green-600{% endif %}">
+              {{ resultat.eau.solde|floatformat:0 }} FCFA
+            </td>
+          </tr>
+          {% if resultat.eau.defalque_sur_avance > 0 %}
+          <tr class="border-b border-cyan-200">
+            <td class="py-2 text-gray-700">Défalqué sur avance</td>
+            <td class="py-2 text-right font-medium text-orange-600">{{ resultat.eau.defalque_sur_avance|floatformat:0 }} FCFA</td>
+          </tr>
+          {% endif %}
+          <tr class="font-semibold bg-cyan-100">
+            {% if resultat.eau.solde > 0 %}
+            <td class="py-2 text-cyan-800">→ Propriétaire doit au locataire</td>
+            <td class="py-2 text-right text-red-600">{{ resultat.eau.solde|floatformat:0 }} FCFA</td>
+            {% elif resultat.eau.solde < 0 %}
+            <td class="py-2 text-cyan-800">→ Locataire doit au propriétaire</td>
+            <td class="py-2 text-right text-green-600">{{ resultat.eau.a_payer_par_locataire|floatformat:0 }} FCFA</td>
+            {% else %}
+            <td class="py-2 text-cyan-800">→ Solde</td>
+            <td class="py-2 text-right text-gray-600">0 FCFA (quitte)</td>
+            {% endif %}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Récapitulatif Final -->
+    <div class="bg-gray-100 border-2 border-gray-400 rounded p-6 mb-6">
+      <h2 class="font-bold text-xl text-gray-800 mb-4">📊 RÉCAPITULATIF</h2>
+      
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <!-- Colonne Rouge: Dû au locataire -->
+        <div class="bg-red-50 border border-red-300 rounded p-4">
+          <h3 class="font-semibold text-red-800 mb-2">🔴 DÛ AU LOCATAIRE</h3>
+          <ul class="text-sm space-y-1">
+            <li class="flex justify-between">
+              <span>Avance restante:</span>
+              <span class="font-medium">{{ resultat.avance.montant_final|floatformat:0 }} FCFA</span>
+            </li>
+            {% if resultat.electricite.du_au_locataire > 0 %}
+            <li class="flex justify-between">
+              <span>Reste caution élec:</span>
+              <span class="font-medium">{{ resultat.electricite.du_au_locataire|floatformat:0 }} FCFA</span>
+            </li>
+            {% endif %}
+            {% if resultat.eau.du_au_locataire > 0 %}
+            <li class="flex justify-between">
+              <span>Reste caution eau:</span>
+              <span class="font-medium">{{ resultat.eau.du_au_locataire|floatformat:0 }} FCFA</span>
+            </li>
+            {% endif %}
+          </ul>
+          <hr class="my-2 border-red-300">
+          <div class="flex justify-between font-bold text-lg text-red-700">
+            <span>TOTAL:</span>
+            <span>{{ resultat.total_du_au_locataire|floatformat:0 }} FCFA</span>
+          </div>
+        </div>
+
+        <!-- Colonne Verte: À payer par le locataire -->
+        <div class="bg-green-50 border border-green-300 rounded p-4">
+          <h3 class="font-semibold text-green-800 mb-2">🟢 À PAYER PAR LE LOCATAIRE</h3>
+          <ul class="text-sm space-y-1">
+            {% if resultat.electricite.a_payer_par_locataire > 0 %}
+            <li class="flex justify-between">
+              <span>Dette électricité:</span>
+              <span class="font-medium">{{ resultat.electricite.a_payer_par_locataire|floatformat:0 }} FCFA</span>
+            </li>
+            {% endif %}
+            {% if resultat.eau.a_payer_par_locataire > 0 %}
+            <li class="flex justify-between">
+              <span>Dette eau:</span>
+              <span class="font-medium">{{ resultat.eau.a_payer_par_locataire|floatformat:0 }} FCFA</span>
+            </li>
+            {% endif %}
+            {% if resultat.dommages.a_payer_par_locataire > 0 %}
+            <li class="flex justify-between">
+              <span>Dommages:</span>
+              <span class="font-medium">{{ resultat.dommages.a_payer_par_locataire|floatformat:0 }} FCFA</span>
+            </li>
+            {% endif %}
+            {% if mois_impayes %}
+            <li class="flex justify-between">
+              <span>Loyers non couverts:</span>
+              <span class="font-medium">{{ resultat.avance.defalcation_loyers_impayes|floatformat:0 }} FCFA</span>
+            </li>
+            {% endif %}
+            {% if resultat.total_a_payer_par_locataire == 0 %}
+            <li class="text-gray-500 italic">Aucune dette</li>
+            {% endif %}
+          </ul>
+          <hr class="my-2 border-green-300">
+          <div class="flex justify-between font-bold text-lg text-green-700">
+            <span>TOTAL:</span>
+            <span>{{ resultat.total_a_payer_par_locataire|floatformat:0 }} FCFA</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Solde Final -->
+      <div class="{% if resultat.solde_final >= 0 %}bg-red-100 border-red-400{% else %}bg-green-100 border-green-400{% endif %} border-2 rounded p-4 text-center">
+        <div class="text-lg mb-2">
+          SOLDE FINAL = <span class="text-red-600">{{ resultat.total_du_au_locataire|floatformat:0 }}</span> - <span class="text-green-600">{{ resultat.total_a_payer_par_locataire|floatformat:0 }}</span> = <span class="font-bold">{{ resultat.solde_final|floatformat:0 }} FCFA</span>
+        </div>
+        <div class="text-2xl font-bold {% if resultat.solde_final >= 0 %}text-red-700{% else %}text-green-700{% endif %}">
+          {% if resultat.solde_final > 0 %}
+            🔴 PROPRIÉTAIRE DOIT AU LOCATAIRE: {{ resultat.solde_final|floatformat:0 }} FCFA
+          {% elif resultat.solde_final < 0 %}
+            🟢 LOCATAIRE DOIT AU PROPRIÉTAIRE: {{ resultat.solde_final|floatformat:0|slice:"1:" }} FCFA
+          {% else %}
+            ⚪ QUITTE: Aucun montant à échanger
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <form method="post" action="{% url 'paiements:sortie_confirmer' %}">
+      {% csrf_token %}
+      <div class="flex items-center justify-between">
+        <a href="{% url 'paiements:sortie' %}?locataire={{ locataire.pk }}" class="px-4 py-2 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50">
+          ← Modifier
+        </a>
+        <button type="submit" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold">
+          ✅ Confirmer la sortie et générer le PDF
+        </button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

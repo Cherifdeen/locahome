@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Paramètres - LocaHome{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <div class="bg-white rounded-lg shadow p-6">
+    <h1 class="text-2xl font-bold text-gray-800 mb-2">⚙️ Mes paramètres</h1>
+    <p class="text-gray-600 text-sm mb-6">
+      Configurez vos tarifs, textes légaux et images pour les reçus PDF.
+    </p>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+
+      <!-- Paramètres d'entrée -->
+      <div class="border-b pb-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">💰 Paramètres d'entrée</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Nombre de mois d'avance *
+            </label>
+            {{ form.nombre_mois_avance }}
+            <p class="text-xs text-gray-500 mt-1">Nombre de mois de loyer à payer en avance</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Caution eau (FCFA) *
+            </label>
+            {{ form.montant_caution_eau }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Prix -->
+      <div class="border-b pb-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">💵 Tarifs</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Prix du KWh (FCFA) *
+            </label>
+            {{ form.prix_kwh }}
+            <p class="text-xs text-gray-500 mt-1">Utilisé pour calculer la consommation électrique</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Prix location par défaut (FCFA)
+            </label>
+            {{ form.prix_location_defaut }}
+            <p class="text-xs text-gray-500 mt-1">Prix suggéré lors de la création d'une chambre</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Textes légaux -->
+      <div class="border-b pb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-gray-800">📜 Textes légaux pour les PDF</h2>
+        </div>
+        <p class="text-sm text-gray-600 mb-4">
+          Ces textes apparaissent en bas des reçus PDF. Vous pouvez les personnaliser, les effacer 
+          ou utiliser les textes par défaut. Cliquez sur "Réinitialiser" pour restaurer le texte par défaut.
+        </p>
+        
+        <div class="space-y-6">
+          <!-- Texte entrée -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-sm font-medium text-gray-700">
+                Texte légal - Reçu d'entrée (formalités + premier mois)
+              </label>
+              <button type="button" onclick="resetTexte('id_texte_legal_entree', 'default_entree')" 
+                      class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                ↺ Réinitialiser
+              </button>
+            </div>
+            {{ form.texte_legal_entree }}
+            <p class="text-xs text-gray-500 mt-1">
+              Affiché sur les reçus de formalités d'entrée et premier mois
+            </p>
+          </div>
+
+          <!-- Texte mensuel -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-sm font-medium text-gray-700">
+                Texte légal - Reçu mensuel
+              </label>
+              <button type="button" onclick="resetTexte('id_texte_legal_mensuel', 'default_mensuel')" 
+                      class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                ↺ Réinitialiser
+              </button>
+            </div>
+            {{ form.texte_legal_mensuel }}
+            <p class="text-xs text-gray-500 mt-1">
+              Affiché sur les reçus de paiement mensuel
+            </p>
+          </div>
+
+          <!-- Texte sortie -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-sm font-medium text-gray-700">
+                Texte légal - Reçu de sortie
+              </label>
+              <button type="button" onclick="resetTexte('id_texte_legal_sortie', 'default_sortie')" 
+                      class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                ↺ Réinitialiser
+              </button>
+            </div>
+            {{ form.texte_legal_sortie }}
+            <p class="text-xs text-gray-500 mt-1">
+              Affiché sur le décompte final de sortie (avance, électricité, eau)
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Images -->
+      <div>
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">🖼️ Images pour les PDF</h2>
+        <p class="text-sm text-gray-600 mb-4">
+          Le logo et la signature apparaissent sur tous les reçus PDF générés.
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Logo</label>
+            {% if object.logo %}
+              <div class="mb-2 p-2 bg-gray-50 rounded inline-block">
+                <img src="{{ object.logo.url }}" alt="Logo actuel" class="max-h-16">
+              </div>
+              <p class="text-xs text-gray-500 mb-2">Logo actuel</p>
+            {% endif %}
+            {{ form.logo }}
+            <p class="text-xs text-gray-500 mt-1">Format recommandé : PNG ou JPG, max 200x100px</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Signature</label>
+            {% if object.signature %}
+              <div class="mb-2 p-2 bg-gray-50 rounded inline-block">
+                <img src="{{ object.signature.url }}" alt="Signature actuelle" class="max-h-16">
+              </div>
+              <p class="text-xs text-gray-500 mb-2">Signature actuelle</p>
+            {% endif %}
+            {{ form.signature }}
+            <p class="text-xs text-gray-500 mt-1">Format recommandé : PNG transparent, max 200x80px</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-4 border-t">
+        <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition font-medium">
+          💾 Enregistrer les paramètres
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Textes par défaut (cachés, utilisés par JavaScript) -->
+<div id="default_entree" class="hidden">{{ defaults.texte_legal_entree }}</div>
+<div id="default_mensuel" class="hidden">{{ defaults.texte_legal_mensuel }}</div>
+<div id="default_sortie" class="hidden">{{ defaults.texte_legal_sortie }}</div>
+
+<script>
+function resetTexte(textareaId, defaultId) {
+  const textarea = document.getElementById(textareaId);
+  const defaultText = document.getElementById(defaultId).textContent;
+  
+  if (confirm('Réinitialiser ce texte avec la valeur par défaut ?')) {
+    textarea.value = defaultText;
+  }
+}
+</script>
+{% endblock %}

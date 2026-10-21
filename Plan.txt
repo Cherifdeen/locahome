@@ -1,0 +1,307 @@
+================================================================================
+                    PROJET LOCAHOME - PLAN DE DÉVELOPPEMENT
+              Mise à jour vers plateforme multi-propriétaires
+================================================================================
+
+Ce plan détaille les modifications à apporter au projet existant pour le
+transformer en plateforme multi-propriétaires avec vitrine publique.
+
+================================================================================
+                    PHASE 1 - REFONTE DE L'ARCHITECTURE
+================================================================================
+
+1.1. NOUVEAUX MODÈLES À CRÉER
+
+A. App "comptes" - Gestion des propriétaires
+   □ Créer l'app Django "comptes"
+   □ Modèle Proprietaire :
+     - user (OneToOne vers User Django)
+     - nom_complet
+     - telephone
+     - email
+     - date_inscription
+   □ Configuration de l'authentification (inscription, connexion, déconnexion)
+
+B. App "maisons" - Nouveau module
+   □ Créer l'app Django "maisons"
+   □ Modèle Maison :
+     - proprietaire (ForeignKey vers Proprietaire)
+     - nom
+     - quartier
+     - type_maison (studio, appartement, maison, etc.)
+     - adresse
+     - description
+     - photo (optionnel)
+     - cree_le, mis_a_jour_le
+   □ Méthodes : nombre_chambres_libres, nombre_chambres_total
+
+--------------------------------------------------------------------------------
+
+1.2. MODIFICATIONS DES MODÈLES EXISTANTS
+
+A. Modèle Chambre (chambres/models.py)
+   □ Ajouter : maison (ForeignKey vers Maison) - OBLIGATOIRE
+   □ Supprimer la relation directe avec propriétaire (via maison maintenant)
+   □ Le statut reste (LIBRE/OCCUPEE) mais la logique change
+
+B. Modèle Locataire (locataires/models.py)
+   □ Ajouter : caution_eau (DecimalField) - montant payé
+   □ Ajouter : avance_loyer devient la garantie (X mois)
+   □ Ajouter : avance_initiale (pour garder trace du montant initial)
+   □ Modifier la logique de calcul des retards → soustraction auto dans avance
+
+C. Modèle Paiement (paiements/models.py)
+   □ Ajouter type : FORMALITES (pour avance + caution eau)
+   □ Ajouter : details_formalites (JSON ou champs séparés)
+   □ Garder les types : ENTREE (1er mois), MENSUEL, SORTIE
+
+D. Modèle ProprietaireParametres → devient ParametresProprietaire
+   □ Ajouter : proprietaire (ForeignKey vers Proprietaire)
+   □ Ajouter : nombre_mois_avance (IntegerField, défaut=3)
+   □ Ajouter : montant_caution_eau (DecimalField)
+   □ Chaque propriétaire a ses propres paramètres
+
+================================================================================
+                    PHASE 2 - AUTHENTIFICATION & COMPTES
+================================================================================
+
+2.1. BACKEND AUTHENTIFICATION
+   □ Configurer django.contrib.auth
+   □ Formulaire d'inscription propriétaire
+   □ Formulaire de connexion
+   □ Middleware pour rediriger vers dashboard après connexion
+   □ Protection des vues (LoginRequiredMixin)
+
+2.2. PAGES AUTHENTIFICATION
+   □ Page inscription (/inscription/)
+   □ Page connexion (/connexion/)
+   □ Page déconnexion (/deconnexion/)
+   □ Template email de bienvenue (optionnel)
+
+================================================================================
+                    PHASE 3 - MODULE MAISONS (NOUVEAU)
+================================================================================
+
+3.1. BACKEND MAISONS
+   □ Modèle Maison complet
+   □ Vues CRUD (Create, Read, Update, Delete)
+   □ Permissions : seul le propriétaire peut modifier ses maisons
+   □ Queryset filtré par propriétaire connecté
+
+3.2. PAGES MAISONS (espace propriétaire)
+   □ Liste de mes maisons (/dashboard/maisons/)
+   □ Ajouter une maison (/dashboard/maisons/ajouter/)
+   □ Modifier une maison (/dashboard/maisons/<id>/modifier/)
+   □ Détail d'une maison (/dashboard/maisons/<id>/)
+   □ Supprimer une maison (avec confirmation)
+
+================================================================================
+                    PHASE 4 - ADAPTATION MODULE CHAMBRES
+================================================================================
+
+4.1. MODIFICATIONS BACKEND
+   □ Migration : ajouter champ maison (ForeignKey)
+   □ Adapter les vues pour filtrer par maison du propriétaire
+   □ Modifier la logique de création (associer à une maison)
+
+4.2. PAGES CHAMBRES (espace propriétaire)
+   □ Liste des chambres par maison (/dashboard/maisons/<id>/chambres/)
+   □ Ajouter une chambre à une maison
+   □ Modifier une chambre
+   □ Détail chambre (locataire actuel, historique, notes)
+
+================================================================================
+                    PHASE 5 - VITRINE PUBLIQUE
+================================================================================
+
+5.1. PAGES PUBLIQUES
+   □ Accueil (/) - Liste des maisons avec chambres disponibles
+   □ Détail maison (/maisons/<id>/) - Infos + chambres libres
+   □ Ne pas afficher les maisons sans chambres libres
+
+5.2. FILTRES
+   □ Par quartier (liste déroulante)
+   □ Par type de maison
+   □ Par fourchette de prix
+   □ Par nombre de chambres disponibles
+
+5.3. DESIGN
+   □ Cards pour chaque maison
+   □ Affichage du nombre de chambres libres
+   □ Prix à partir de X FCFA
+   □ Bouton "Voir les chambres"
+
+================================================================================
+                    PHASE 6 - PROCESSUS D'ENTRÉE LOCATAIRE
+================================================================================
+
+6.1. FLOW EN 2 ÉTAPES
+
+ÉTAPE 1 : Formulaire Formalités
+   □ Créer vue FormulaireFormalites
+   □ Champs :
+     - Sélection chambre libre
+     - Infos locataire (nom, téléphone, email)
+     - Confirmation paiement avance (montant calculé auto)
+     - Confirmation paiement caution eau
+     - KWh d'entrée
+     - Nombre de clés remises
+   □ Validation : vérifier que les montants sont corrects
+   □ Création du Locataire avec statut temporaire
+   □ Création du Paiement type=FORMALITES
+   □ Redirection vers étape 2
+
+ÉTAPE 2 : Formulaire Premier Mois
+   □ Créer vue FormulairePremierMois
+   □ Champs :
+     - Montant du loyer (pré-rempli avec prix chambre)
+     - Date de paiement
+     - Notes
+   □ Validation : montant = prix de la chambre
+   □ Création du Paiement type=ENTREE
+   □ Mise à jour statut chambre → OCCUPEE
+   □ Mise à jour statut locataire → EN_COURS
+   □ Génération reçu PDF
+
+6.2. PAGES
+   □ /dashboard/chambres/<id>/nouveau-locataire/ (formalités)
+   □ /dashboard/locataires/<id>/premier-mois/ (1er mois)
+
+================================================================================
+                    PHASE 7 - GESTION DE L'AVANCE & RETARDS
+================================================================================
+
+7.1. LOGIQUE MÉTIER (services/avance.py)
+   □ Fonction calculer_avance_requise(chambre, nb_mois)
+   □ Fonction soustraire_de_avance(locataire, montant)
+   □ Fonction verifier_alerte_avance(locataire) → True si reste ≤ 1 mois
+   □ Fonction get_avance_restante(locataire)
+
+7.2. AUTOMATISATION DES RETARDS
+   □ Modifier services/paiements.py
+   □ Quand retard détecté → appeler soustraire_de_avance()
+   □ Mettre à jour le champ avance_loyer du locataire
+   □ Créer un historique des soustractions (nouveau modèle ?)
+
+7.3. ALERTES
+   □ Dans le dashboard : liste des locataires avec avance ≤ 1 mois
+   □ Affichage en orange/rouge selon urgence
+
+================================================================================
+                    PHASE 8 - PAIEMENTS MENSUELS
+================================================================================
+
+8.1. MODIFICATIONS
+   □ Adapter le formulaire de paiement mensuel
+   □ Vérifier si le mois est en retard
+   □ Si retard : afficher info sur soustraction dans avance
+   □ Possibilité de paiement partiel
+
+8.2. PAGES
+   □ Liste des paiements (/dashboard/paiements/)
+   □ Enregistrer paiement (/dashboard/paiements/nouveau/)
+   □ Filtres : par locataire, par mois, par statut
+
+================================================================================
+                    PHASE 9 - PROCESSUS DE SORTIE
+================================================================================
+
+9.1. FORMULAIRE DE SORTIE
+   □ Vue ProcessusSortie
+   □ Champs :
+     - KWh de sortie
+     - Nombre de clés rendues
+     - Observations finales
+     - Date de sortie
+   □ Calculs automatiques :
+     - Consommation KWh = sortie - entrée
+     - Coût KWh = consommation × prix_kwh
+     - Avance restante
+     - Total à rembourser = avance_restante - coût_kwh
+
+9.2. GÉNÉRATION PDF SORTIE
+   □ Template HTML détaillé avec :
+     - Récapitulatif des paiements
+     - Détail des soustractions dans l'avance
+     - Calcul KWh
+     - Montant final à rembourser ou à payer
+   □ Génération via WeasyPrint
+
+9.3. MISE À JOUR
+   □ Statut locataire → SORTI
+   □ Statut chambre → LIBRE
+   □ Date de sortie enregistrée
+
+================================================================================
+                    PHASE 10 - DASHBOARD PROPRIÉTAIRE
+================================================================================
+
+10.1. INDICATEURS
+   □ Nombre total de maisons
+   □ Chambres occupées / libres (graphique)
+   □ Revenus du mois
+   □ Paiements en retard (liste)
+   □ Alertes avance faible (liste)
+   □ Problèmes non résolus
+
+10.2. ACTIONS RAPIDES
+   □ Ajouter une maison
+   □ Enregistrer un paiement
+   □ Voir les retards
+
+================================================================================
+                    PHASE 11 - PARAMÈTRES PROPRIÉTAIRE
+================================================================================
+
+11.1. PAGE PARAMÈTRES
+   □ Formulaire unique avec :
+     - Nombre de mois d'avance requis
+     - Montant caution eau
+     - Prix KWh
+     - Prix location par défaut
+     - Textes légaux (entrée, mensuel, sortie)
+     - Upload logo
+     - Upload signature
+
+================================================================================
+                    PHASE 12 - PDF (WeasyPrint)
+================================================================================
+
+12.1. TEMPLATES PDF À CRÉER/MODIFIER
+   □ Reçu formalités (avance + caution eau)
+   □ Reçu premier mois / entrée
+   □ Reçu mensuel
+   □ Fiche de sortie complète
+
+12.2. DONNÉES DYNAMIQUES
+   □ Injecter les textes légaux du propriétaire
+   □ Logo et signature du propriétaire
+   □ Calculs automatiques
+
+================================================================================
+                    PHASE 13 - TESTS & FINITIONS
+================================================================================
+
+13.1. TESTS UNITAIRES
+   □ Tests calcul avance
+   □ Tests soustraction automatique
+   □ Tests calcul KWh
+   □ Tests processus entrée/sortie
+
+13.2. UX/UI
+   □ Responsive (mobile)
+   □ Messages de succès/erreur
+   □ Confirmations pour actions critiques
+   □ Loading states
+
+13.3. SÉCURITÉ
+   □ Vérifier que chaque propriétaire ne voit que ses données
+   □ Protection CSRF
+   □ Validation des formulaires
+
+================================================================================
+                              FIN DU PLAN
+================================================================================
+
+Ensuite pour l'entrée on n'est pas obligée de forcément enregistrer un locataire avant de pouvoir effectuer un paiement en son nom. On va faire un changement: Sur la page locataire on va enlever le boutton "Ajouter un locataire" car temps que la personne n'a pas payé l'avance puis le premier paiement il ne peut pas être considéré comme locataire. Sur la page locataire on n'aura de la liste des locataires. Sur la page paiement, lorsqu'on clique sur entrée on a un formulaire qui demande les informations du nouveau locataire(ancien formulaire de "Ajouter un locataire"), une fois ce formulaire validé, on est dirigé sur le formulaire de paiement d'avance puis sur celui de paiement du premier mois. Ce n'est qu'apres validation de ce dernier paiement que ce locataire pourra apparaitre dans la liste des locataires.
+Le filtre au niveau de locataire aussi ne fonctionne pas correctement
